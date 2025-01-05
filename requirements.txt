@@ -1,0 +1,10 @@
+- vendors should be able to add, manage, update, delete their products
+- each product should has a name, quantity, price, and a category that has no parent categories
+- categories should be predefined from the start
+- customers should be able to buy available products
+- customers should be able to view the live info of the product/s they are buying (available quantity, price, ...etc)
+- after a successful payment transaction
+    - the selected product/s should be updated
+    - a receipt should be recorded permanently including products sold, quantities, date, ...etc
+- a vendor shouldn't be able to update, delete product/s while a customer is performing a transaction on them
+- two or more transactions on the same product should be completed as each of them was running separately from the others, in other words they shouldn't conflict with each others
