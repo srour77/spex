@@ -1,11 +1,11 @@
-import { Vendor } from "@prisma/client"
+import { Vendor } from '@prisma/client';
 
 interface IVendor {
-    createVendor(): Promise<number>;
-    updateVendor(data: Partial<Pick<Vendor, 'name' | 'address' | 'phone'>>): Promise<void>;
-    deleteVendor(id: number): Promise<void>;
-    getVendorById(id: number): Promise<void>;
-    resetVendorPassword(id: number, password: string): Promise<void>;
+  createVendor(data: Omit<Vendor, 'id'>): Promise<number>;
+  updateVendor(id: number, data: Partial<Pick<Vendor, 'name' | 'address' | 'phone'>>): Promise<void>;
+  deleteVendor(id: number): Promise<void>;
+  getVendorById(id: number): Promise<void>;
+  resetVendorPassword(id: number, password: string): Promise<void>;
 }
 
-export default IVendor
+export default IVendor;

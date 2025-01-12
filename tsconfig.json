@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-        "target": "ES6", // JavaScript version to compile to
-        "module": "commonjs", // Module system (Node.js uses commonjs)
-        "outDir": "./dist", // Output directory for compiled files
-        "rootDir": "./", // Source directory for TypeScript files
-        "strict": true, // Enable strict type-checking
-        "esModuleInterop": true, // Allow default imports from CommonJS modules
-        "skipLibCheck": true // Skip type checking of declaration files
-    },
-    "include": ["./**/*"], // Include all files in the src directory
-    "exclude": ["node_modules"] // Exclude the node_modules directory
+  "compilerOptions": {
+    "target": "ES6", // JavaScript version to compile to
+    "module": "commonjs", // Module system (Node.js uses commonjs)
+    "outDir": "./dist", // Output directory for compiled files
+    "rootDir": "./", // Source directory for TypeScript files
+    "strict": true, // Enable strict type-checking
+    "esModuleInterop": true, // Allow default imports from CommonJS modules
+    "skipLibCheck": true // Skip type checking of declaration files
+  },
+  "include": ["./**/*"], // Include all files in the src directory
+  "exclude": ["node_modules"] // Exclude the node_modules directory
 }
