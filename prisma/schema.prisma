@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,174 +7,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model vendors {
-  id           Int           @id @default(autoincrement())
-  name         String        @db.NVarChar(100)
-  address      String        @db.NVarChar(200)
-  email        String        @db.VarChar(70)
-  phone        String        @db.Char(11)
-  password     String        @db.VarChar(100)
-  cpus         cpu[]
-  rams         ram[]
-  gpus         gpu[]
-  motherBoards motherBoard[]
+model Vendor {
+  id       Int        @id @default(autoincrement())
+  name     String     @db.NVarChar(100)
+  address  String     @db.NVarChar(200)
+  email    String     @db.VarChar(70)
+  phone    String     @db.Char(11)
+  password String     @db.VarChar(100)
+  products Product[]
 }
 
-model customers {
+model Product {
+  id           Int               @id @default(autoincrement())
+  name         String            @db.NVarChar(100)
+  desc         String?           @db.NVarChar(500)
+  stock        Int
+  price        Int
+  manufacturer String            @db.VarChar(50)
+  warranty     Int               @db.SmallInt
+  model        String            @db.VarChar(30)
+  year         DateTime          @db.Date
+  isNew        Boolean
+  isDeleted    Boolean
+  category     String            @db.VarChar(40)
+  specs        String            @db.VarChar(600)
+  vendorId     Int
+  vendor       Vendor           @relation(fields: [vendorId], references: [id])
+  orders       Product_Order[]
+}
+
+model Customer {
   id       Int      @id @default(autoincrement())
   name     String   @db.NVarChar(100)
   address  String   @db.NVarChar(200)
   email    String   @db.VarChar(70)
   phone    String   @db.Char(11)
   password String   @db.VarChar(100)
-  orders   orders[]
+  orders   Order[]
 }
 
-model cpu {
-  id                 Int         @id @default(autoincrement())
-  name               String      @db.NVarChar(100)
-  desc               String?     @db.NVarChar(200)
-  stock              Int
-  price              Int
-  manufacturer       String      @db.VarChar(50)
-  warranty           Int         @db.SmallInt
-  model              String      @db.VarChar(30)
-  year               DateTime    @db.Date
-  new                Boolean
-  deleted            Boolean
-  cores              Int         @db.SmallInt
-  threads            Int         @db.SmallInt
-  l1Cache            Int         @db.SmallInt
-  l2Cache            Int         @db.SmallInt
-  l3Cache            Int?        @db.SmallInt
-  baseClock          Decimal     @db.Decimal(3, 2)
-  boostClock         Decimal?    @db.Decimal(3, 2)
-  architecture       Boolean
-  socket             String      @db.VarChar(20)
-  integratedGraphics String?     @db.VarChar(50)
-  vendorId           Int
-  vendor             vendors     @relation(fields: [vendorId], references: [id], onUpdate: Cascade, onDelete: NoAction)
-  orders             cpuOrders[]
+model Order {
+  id         String            @id @default(uuid())
+  customerId Int
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: Cascade)
+  products   Product_Order[]
 }
 
-model ram {
-  id           Int         @id @default(autoincrement())
-  name         String      @db.NVarChar(100)
-  desc         String?     @db.NVarChar(200)
-  stock        Int
-  price        Int
-  manufacturer String      @db.VarChar(50)
-  warranty     Int         @db.SmallInt
-  model        String      @db.VarChar(30)
-  year         DateTime    @db.Date
-  new          Boolean
-  deleted      Boolean
-  size         Int         @db.SmallInt
-  speed        Int         @db.SmallInt
-  latency      Int?        @db.SmallInt
-  memoryType   String      @db.VarChar(20)
-  vendorId     Int
-  vendor       vendors     @relation(fields: [vendorId], references: [id], onUpdate: Cascade, onDelete: NoAction)
-  orders       ramOrders[]
-}
+model Product_Order {
+  productId Int
+  orderId   String
+  price     Int
+  itemNo    Int
+  product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
 
-model gpu {
-  id           Int         @id @default(autoincrement())
-  name         String      @db.NVarChar(100)
-  desc         String?     @db.NVarChar(200)
-  stock        Int
-  price        Int
-  manufacturer String      @db.VarChar(50)
-  warranty     Int         @db.SmallInt
-  model        String      @db.VarChar(30)
-  year         DateTime    @db.Date
-  new          Boolean
-  deleted      Boolean
-  cores        Int         @db.SmallInt
-  rops         Int?        @db.SmallInt
-  memoryType   String      @db.VarChar(20)
-  memorySize   Int         @db.SmallInt
-  busWidth     Int?        @db.SmallInt
-  vendorId     Int
-  vendor       vendors     @relation(fields: [vendorId], references: [id], onUpdate: Cascade, onDelete: NoAction)
-  orders       gpuOrders[]
-}
-
-model motherBoard {
-  id           Int                 @id @default(autoincrement())
-  name         String              @db.NVarChar(100)
-  desc         String?             @db.NVarChar(200)
-  stock        Int
-  price        Int
-  manufacturer String              @db.VarChar(50)
-  warranty     Int                 @db.SmallInt
-  model        String              @db.VarChar(30)
-  year         DateTime            @db.Date
-  new          Boolean
-  deleted      Boolean
-  socket       String              @db.VarChar(50)
-  memory       String?             @db.VarChar(100)
-  lan          String?             @db.VarChar(100)
-  storage      String?             @db.VarChar(100)
-  usb          String?             @db.VarChar(100)
-  network      String?             @db.VarChar(100)
-  vendorId     Int
-  vendor       vendors             @relation(fields: [vendorId], references: [id], onUpdate: Cascade, onDelete: NoAction)
-  orders       motherBoardOrders[]
-}
-
-model orders {
-  id                String              @id @default(uuid())
-  customerId        Int
-  customer          customers           @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-  cpuOrders         cpuOrders[]
-  ramOrders         ramOrders[]
-  gpuOrders         gpuOrders[]
-  motherBoardOrders motherBoardOrders[]
-}
-
-model cpuOrders {
-  orderId  String
-  cpuId    Int
-  quantity Int
-  price    Int
-  cpu      cpu    @relation(fields: [cpuId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-  order    orders @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-
-  @@id([orderId, cpuId])
-}
-
-model ramOrders {
-  orderId  String
-  ramId    Int
-  quantity Int
-  price    Int
-  ram      ram    @relation(fields: [ramId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-  order    orders @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-
-  @@id([orderId, ramId])
-}
-
-model gpuOrders {
-  orderId  String
-  gpuId    Int
-  quantity Int
-  price    Int
-  ordersId String?
-  gpu      gpu     @relation(fields: [gpuId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-  order    orders  @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-
-  @@id([orderId, gpuId])
-}
-
-model motherBoardOrders {
-  orderId       Int
-  motherBoardId Int
-  quantity      Int
-  price         Int
-  orders        orders?     @relation(fields: [ordersId], references: [id])
-  ordersId      String?
-  motherBoard   motherBoard @relation(fields: [motherBoardId], references: [id])
-
-  @@id([orderId, motherBoardId])
+  @@id([productId, orderId])
 }
