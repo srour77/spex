@@ -64,3 +64,8 @@ export type keyboardSpecs = {
   isRgb?: boolean;
   usbVersion?: number;
 };
+
+export type APIResponse = {
+  message: string;
+  success: boolean;
+};

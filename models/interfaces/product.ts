@@ -7,11 +7,12 @@ interface IProduct {
   deleteProduct(id: number): Promise<void>;
   getProductById(id: number): Promise<Product | null>;
   searchProducts(
-    data: Partial<Pick<Product, 'vendorId' | 'category' | 'isNew'>> & {
-      minPrice?: number;
-      maxPrice?: number;
-      specs: cpuSpecs | ramSpecs | gpuSpecs | motherBoardSpecs | driveSpecs | monitorSpecs | keyboardSpecs | mouseSpecs | undefined;
-    },
+    data: Partial<Pick<Product, 'vendorId' | 'isNew'>> &
+      Pick<Product, 'category'> & {
+        minPrice?: number;
+        maxPrice?: number;
+        specs: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
+      },
   ): Promise<Array<Product>>;
 }
 

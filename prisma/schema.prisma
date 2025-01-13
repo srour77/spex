@@ -28,11 +28,11 @@ model Product {
   model        String            @db.VarChar(30)
   year         DateTime          @db.Date
   isNew        Boolean
-  isDeleted    Boolean
+  isDeleted    Boolean           @default(false)
   category     String            @db.VarChar(40)
-  specs        String            @db.VarChar(600)
+  specs        String?           @db.VarChar(600)
   vendorId     Int
-  vendor       Vendor           @relation(fields: [vendorId], references: [id])
+  vendor       Vendor            @relation(fields: [vendorId], references: [id])
   orders       Product_Order[]
 }
 

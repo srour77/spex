@@ -1,0 +1,20 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[Product] ALTER COLUMN [specs] VARCHAR(600) NULL;
+ALTER TABLE [dbo].[Product] ADD CONSTRAINT [Product_isDeleted_df] DEFAULT 0 FOR [isDeleted];
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

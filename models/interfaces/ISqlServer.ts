@@ -1,6 +1,6 @@
-import ICustomer from './customers';
-import IProduct from './products';
-import IVendor from './vendors';
+import ICustomer from './customer';
+import IProduct from './product';
+import IVendor from './vendor';
 
 interface ISqlServer extends IVendor, ICustomer, IProduct {}
 

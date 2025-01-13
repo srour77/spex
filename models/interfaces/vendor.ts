@@ -6,6 +6,7 @@ interface IVendor {
   deleteVendor(id: number): Promise<void>;
   getVendorById(id: number): Promise<void>;
   resetVendorPassword(id: number, password: string): Promise<void>;
+  getVendorCount(email: string): Promise<number>;
 }
 
 export default IVendor;

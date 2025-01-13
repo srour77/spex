@@ -30,6 +30,11 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.vendor.update({ where: { id }, data: { password } });
   }
 
+  async getVendorCount(email: string): Promise<number> {
+    const count = await this.db.vendor.count({ where: { email } });
+    return count;
+  }
+
   async createCustomer(data: Omit<Customer, 'id'>): Promise<number> {
     const customer = await this.db.customer.create({ data, select: { id: true } });
     return customer.id;
@@ -90,80 +95,113 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async searchProducts(
-    data: Partial<Pick<Product, 'vendorId' | 'category' | 'isNew'>> & {
-      minPrice?: number;
-      maxPrice?: number;
-      specs: cpuSpecs | ramSpecs | gpuSpecs | motherBoardSpecs | driveSpecs | monitorSpecs | keyboardSpecs | mouseSpecs | undefined;
-    },
+    data: Partial<Pick<Product, 'vendorId' | 'isNew'>> &
+      Pick<Product, 'category'> & {
+        minPrice?: number;
+        maxPrice?: number;
+        specs: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
+      },
   ): Promise<Array<Product>> {
-    const { vendorId, category, isNew, minPrice, maxPrice, specs } = data
-    let priceFilter: { gte?: number, lte?: number } = {}
-    if(minPrice) priceFilter.gte = minPrice
-    if(minPrice) priceFilter.lte = maxPrice
-    
-    const products = await this.db.product.findMany({ where: { isDeleted: false, vendorId, category, isNew, price: priceFilter } });
+    const { vendorId, category, isNew, minPrice, maxPrice, specs } = data;
+    let query = this.generateSpecsQuery(specs) + ` AND category = ${category} `;
+    if (minPrice != undefined) query += ` AND price >= ${minPrice} `;
+    if (maxPrice != undefined) query += ` AND price <= ${maxPrice} `;
+    if (vendorId != undefined) query += ` AND vendorId <= ${vendorId} `;
+    if (isNew != undefined) query += ` AND isNew = ${isNew ? 1 : 0} `;
+
+    const products = (await this.db.$queryRaw`select * from product where ${query}`) as Array<Product>;
     return products;
   }
 
-  generateSpecsQuery(specs: Partial<Pick<cpuSpecs, 'cores' | 'threads' | 'baseClock' | 'socket'>> & Partial<Pick<ramSpecs, 'size' | 'speed' | 'memoryType'>> & Partial<Pick<motherBoardSpecs, 'socket'>> & Partial<Pick<gpuSpecs, 'cores' | 'memoryType' | 'memorySize'>> & Partial<Pick<monitorSpecs, 'size' | 'panel' | 'refreshRate'>> & Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'>>): string {
+  generateSpecsQuery(
+    specs: Partial<Pick<cpuSpecs, 'cores' | 'threads' | 'baseClock' | 'socket'>> &
+      Partial<Pick<ramSpecs, 'size' | 'speed' | 'memoryType'>> &
+      Partial<Pick<motherBoardSpecs, 'socket'>> &
+      Partial<Pick<gpuSpecs, 'cores' | 'memoryType' | 'memorySize'>> &
+      Partial<Pick<monitorSpecs, 'size' | 'panel' | 'refreshRate'>> &
+      Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'>>,
+  ): string {
     const keys: (keyof typeof specs)[] = ['cores', 'threads', 'baseClock', 'socket', 'size', 'speed', 'memorySize', 'socket', 'cores', 'memoryType', 'memorySize', 'size', 'panel', 'refreshRate', 'size', 'readSpeed', 'writeSpeed'];
-    const query = keys.map(k => `${k}=${specs[k]}`).join('&').toString();
-    return query
+    const query = keys
+      .map(k => {
+        if (specs[k] !== undefined) return `JSON_VALUE(specs, $.${k}) = ${specs[k]}`;
+      })
+      .join(' AND ');
+
+    return query;
   }
 
   generateCpuSpecsQuery(cpuSpecs: Partial<Pick<cpuSpecs, 'cores' | 'threads' | 'baseClock' | 'socket'>>): string {
     const { cores, threads, baseClock, socket } = cpuSpecs;
     const keys: (keyof typeof cpuSpecs)[] = ['cores', 'threads', 'baseClock', 'socket'];
-    const query = keys.map(k => `${k}=${cpuSpecs[k]}`).join('&').toString();
+    const query = keys
+      .map(k => {
+        if (cpuSpecs[k] !== undefined) return `JSON_VALUE(specs, $.${k}) = ${cpuSpecs[k]}`;
+      })
+      .join(' AND ');
+
     return query;
   }
 
   generateRamSpecsQuery(ramSpecs: Partial<Pick<ramSpecs, 'size' | 'speed' | 'memoryType'>>): string {
     const { size, speed, memoryType } = ramSpecs;
     const keys: (keyof typeof ramSpecs)[] = ['size', 'speed', 'memoryType'];
-    const query = keys.map(k => `${k}=${ramSpecs[k]}`).join('&').toString();
+    const query = keys
+      .map(k => `${k}=${ramSpecs[k]}`)
+      .join('&')
+      .toString();
     return query;
   }
 
   generateMotherBoardSpecsQuery(motherBoardSpecs: Partial<Pick<motherBoardSpecs, 'socket'>>): string {
     const { socket } = motherBoardSpecs;
     const keys: (keyof typeof motherBoardSpecs)[] = ['socket'];
-    const query = keys.map(k => `${k}=${motherBoardSpecs[k]}`).join('&').toString();
+    const query = keys
+      .map(k => `${k}=${motherBoardSpecs[k]}`)
+      .join('&')
+      .toString();
     return query;
   }
 
   generateGpuSpecsQuery(gpuSpecs: Partial<Pick<gpuSpecs, 'cores' | 'memoryType' | 'memorySize'>>): string {
     const { cores, memorySize, memoryType } = gpuSpecs;
     const keys: (keyof typeof gpuSpecs)[] = ['cores', 'memoryType', 'memorySize'];
-    const query = keys.map(k => `${k}=${gpuSpecs[k]}`).join('&').toString();
+    const query = keys
+      .map(k => `${k}=${gpuSpecs[k]}`)
+      .join('&')
+      .toString();
     return query;
   }
 
   generateMonitorSpecsQuery(monitorSpecs: Partial<Pick<monitorSpecs, 'size' | 'panel' | 'refreshRate'>>): string {
     const { size, panel, refreshRate } = monitorSpecs;
     const keys: (keyof typeof monitorSpecs)[] = ['size', 'panel', 'refreshRate'];
-    const query = keys.map(k => `${k}=${monitorSpecs[k]}`).join('&').toString();
+    const query = keys
+      .map(k => `${k}=${monitorSpecs[k]}`)
+      .join('&')
+      .toString();
     return query;
   }
 
-  generateDriveSpecsQuery(driveSpecs: Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'> & { minReadSpeed?: number, maxReadSpeed?: number, minWriteSpeed?: number, maxWriteSpeed?: number }>): string {
+  generateDriveSpecsQuery(driveSpecs: Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'> & { minReadSpeed?: number; maxReadSpeed?: number; minWriteSpeed?: number; maxWriteSpeed?: number }>): string {
     const { size, minReadSpeed, maxReadSpeed, minWriteSpeed, maxWriteSpeed } = driveSpecs;
     const keys: (keyof typeof driveSpecs)[] = ['size', 'readSpeed', 'writeSpeed'];
 
-    const query = keys.map(k => {
-        let subQuery = ``
-        if(k == 'readSpeed') {
-            if(driveSpecs.minReadSpeed !== undefined) subQuery = `${k}>=${driveSpecs[k]}`
-            if(driveSpecs.maxReadSpeed !== undefined) subQuery = `${k}<=${driveSpecs[k]}`
-        }
-        else if(k == 'writeSpeed') {
-            if(driveSpecs.minWriteSpeed !== undefined) subQuery = `${k}>=${driveSpecs[k]}`
-            if(driveSpecs.maxWriteSpeed !== undefined) subQuery = `${k}<=${driveSpecs[k]}`
-        }
-        else subQuery = `${k}=${driveSpecs[k]}`
+    const query = keys
+      .map(k => {
+        let subQuery = ``;
+        if (k == 'readSpeed') {
+          if (driveSpecs.minReadSpeed !== undefined) subQuery = `${k}>=${driveSpecs[k]}`;
+          if (driveSpecs.maxReadSpeed !== undefined) subQuery = `${k}<=${driveSpecs[k]}`;
+        } else if (k == 'writeSpeed') {
+          if (driveSpecs.minWriteSpeed !== undefined) subQuery = `${k}>=${driveSpecs[k]}`;
+          if (driveSpecs.maxWriteSpeed !== undefined) subQuery = `${k}<=${driveSpecs[k]}`;
+        } else subQuery = `${k}=${driveSpecs[k]}`;
 
-        return subQuery
-    }).join('&').toString();
+        return subQuery;
+      })
+      .join('&')
+      .toString();
     return query;
   }
 }
