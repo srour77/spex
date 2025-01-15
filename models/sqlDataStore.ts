@@ -53,6 +53,11 @@ class SqlServerDataStore implements ISqlServer {
     return customer;
   }
 
+  async getCustomerByEmail(email: string): Promise<Pick<Customer, 'id' | 'email' | 'password'> | null> {
+    const customer = await this.db.customer.findFirst({ where: { email }, select: { id: true, email: true, password: true } });
+    return customer;
+  }
+
   async deleteCustomer(id: number): Promise<void> {
     await this.db.customer.delete({ where: { id } });
   }
@@ -76,6 +81,16 @@ class SqlServerDataStore implements ISqlServer {
     return orders;
   }
 
+  getCustomersCount(id: number): Promise<number>;
+  getCustomersCount(email: string): Promise<number>;
+  async getCustomersCount(arg: number | string): Promise<number> {
+    let count = 0;
+    if (typeof arg === 'number') count = await this.db.customer.count({ where: { id: arg } });
+    else if (typeof arg === 'string') count = await this.db.customer.count({ where: { email: arg } });
+
+    return count;
+  }
+
   async createProduct(data: Omit<Product, 'id'>): Promise<number> {
     const product = await this.db.product.create({ data, select: { id: true } });
     return product.id;
@@ -90,17 +105,20 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void> {
-    await this.db.$transaction(async(t) => {
-      const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) } }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]))
-      for(let p of data) {
-        if(!products.has(p.id)) throw new Error('invalid product id')
-        const currentStock = products.get(p.id)?.stock as number
-        if(p.stock > currentStock) throw new Error('insufficiant stock')
-        await t.product.update({ where: { id: p.id }, data: { stock: { decrement: p.stock } } })
-      }
-      
-      await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } })
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    await this.db.$transaction(
+      async t => {
+        const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) } }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]));
+        for (let p of data) {
+          if (!products.has(p.id)) throw new Error('invalid product id');
+          const currentStock = products.get(p.id)?.stock as number;
+          if (p.stock > currentStock) throw new Error('insufficient stock');
+          await t.product.update({ where: { id: p.id }, data: { stock: { decrement: p.stock } } });
+        }
+
+        await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 
   async getProductById(id: number): Promise<Product | null> {
@@ -143,6 +161,11 @@ class SqlServerDataStore implements ISqlServer {
       .join(' AND ');
 
     return query;
+  }
+
+  async getAllProducts(): Promise<Array<Product>> {
+    const products = await this.db.product.findMany();
+    return products;
   }
 
   generateCpuSpecsQuery(cpuSpecs: Partial<Pick<cpuSpecs, 'cores' | 'threads' | 'baseClock' | 'socket'>>): string {
@@ -220,8 +243,8 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async getProductsByVendorId(vendorId: number): Promise<Array<Product>> {
-    const products = await this.db.product.findMany({ where: { vendorId } })
-    return products
+    const products = await this.db.product.findMany({ where: { vendorId } });
+    return products;
   }
 }
 

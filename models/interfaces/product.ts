@@ -15,6 +15,7 @@ interface IProduct {
       },
   ): Promise<Array<Product>>;
   getProductsByVendorId(vendorId: number): Promise<Array<Product>>;
+  getAllProducts(): Promise<Array<Product>>;
 }
 
 export default IProduct;

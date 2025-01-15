@@ -2,6 +2,7 @@ import express from 'express';
 import VendorRouter from './routes/vendor';
 import SqlServerDataStore from './models/sqlDataStore';
 import ProductRouter from './routes/product';
+import CustomerRouter from './routes/customer';
 
 const app = express();
 
@@ -11,6 +12,7 @@ const db = new SqlServerDataStore();
 
 app.use('/vendor', new VendorRouter(db).getRouter());
 app.use('/product', new ProductRouter(db).getRouter());
+app.use('/customer', new CustomerRouter(db).getRouter());
 
 app.listen(2000, () => {
   console.log('server is running');

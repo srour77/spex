@@ -13,7 +13,8 @@ class ProductRouter {
   }
 
   buildRoutes(): void {
-    this.router.get('/get');
+    this.router.get('/get/all', this.controller.getAllProducts);
+    this.router.get('/get/:id', this.controller.getById);
     this.router.post('/new', this.controller.create);
   }
 

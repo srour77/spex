@@ -1,4 +1,4 @@
-enum Categories {
+export enum Categories {
   'CPU',
   'RAM',
   'GPU',
@@ -11,4 +11,7 @@ enum Categories {
   'MONITOR',
 }
 
-export default Categories;
+export enum Roles {
+  customer = 'customer',
+  vendor = 'vendor',
+}

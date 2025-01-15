@@ -21,31 +21,48 @@ class ProductController {
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true });
   };
 
-  update: RequestHandler<{ id: string }, APIResponse, Omit<Product, 'id'> > = async(req, res, next) => {
+  update: RequestHandler<{ id: string }, APIResponse, Omit<Product, 'id'>> = async (req, res, next) => {
     const productId = parseInt(req.params.id);
-    if(isNaN(productId)) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false }); return; }
+    if (isNaN(productId)) {
+      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
+      return;
+    }
     await this.db.updateProduct(productId, req.body);
-    res.status(StatusCodes.OK).json({ message: 'success', success: true })
-  }
+    res.status(StatusCodes.OK).json({ message: 'success', success: true });
+  };
 
-  delete: RequestHandler<{ id: string }, APIResponse> = async(req, res, next) => {
-    const productId = parseInt(req.params.id)
-    if(isNaN(productId)) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false }); return; }
-    await this.db.deleteProduct(productId)
-    res.status(StatusCodes.OK).json({ message: 'success', success: true })
-  }
+  delete: RequestHandler<{ id: string }, APIResponse> = async (req, res, next) => {
+    const productId = parseInt(req.params.id);
+    if (isNaN(productId)) {
+      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
+      return;
+    }
+    await this.db.deleteProduct(productId);
+    res.status(StatusCodes.OK).json({ message: 'success', success: true });
+  };
 
-  getById: RequestHandler<{ id: string }, APIResponse & { product?: Product | null }> = async(req, res, next) => {
-    const productId = parseInt(req.params.id)
-    if(isNaN(productId)) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false }); return; }
-    const product = await this.db.getProductById(productId)
-    res.status(StatusCodes.OK).json({ message: 'success', success: true, product })
-  }
+  getById: RequestHandler<{ id: string }, APIResponse & { product?: Product | null }> = async (req, res, next) => {
+    const productId = parseInt(req.params.id);
+    if (isNaN(productId)) {
+      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
+      return;
+    }
+    const product = await this.db.getProductById(productId);
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, product });
+  };
 
-  getByVendorId: RequestHandler<{ id: string }, APIResponse & { products?: Array<Product> }> = async(req, res, next) => {
-    const vendorId = parseInt(req.params.id)
-    if(isNaN(vendorId)) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false }); return; }
-    const products = await this.db.getProductsByVendorId(vendorId)
+  getByVendorId: RequestHandler<{ id: string }, APIResponse & { products?: Array<Product> }> = async (req, res, next) => {
+    const vendorId = parseInt(req.params.id);
+    if (isNaN(vendorId)) {
+      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
+      return;
+    }
+    const products = await this.db.getProductsByVendorId(vendorId);
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
+  };
+
+  getAllProducts: RequestHandler<any, APIResponse & { products: Array<Product> }> = async(req, res, next) => {
+    const products = await this.db.getAllProducts();
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products })
   }
 }

@@ -1,3 +1,5 @@
+import { Roles } from './enums';
+
 export type cpuSpecs = {
   cores: number;
   threads: number;
@@ -68,4 +70,10 @@ export type keyboardSpecs = {
 export type APIResponse = {
   message: string;
   success: boolean;
+};
+
+export type Token = {
+  id: number;
+  email: string;
+  role: Roles;
 };
