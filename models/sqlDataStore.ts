@@ -1,4 +1,4 @@
-import { Vendor, Customer, Order, Product_Order, Product, PrismaClient } from '@prisma/client';
+import { Vendor, Customer, Order, Product_Order, Product, PrismaClient, Prisma } from '@prisma/client';
 import { cpuSpecs, ramSpecs, gpuSpecs, motherBoardSpecs, driveSpecs, monitorSpecs, keyboardSpecs, mouseSpecs } from '../globals/types';
 import ISqlServer from './interfaces/ISqlServer';
 
@@ -82,11 +82,25 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async updateProduct(id: number, data: Omit<Product, 'id'>): Promise<void> {
-    await this.db.product.update({ where: { id }, data });
+    await this.db.$transaction([this.db.product.update({ where: { id }, data })], { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async deleteProduct(id: number): Promise<void> {
-    await this.db.product.update({ where: { id }, data: { isDeleted: true } });
+    await this.db.$transaction([this.db.product.update({ where: { id }, data: { isDeleted: true } })], { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  }
+
+  async buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void> {
+    await this.db.$transaction(async(t) => {
+      const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) } }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]))
+      for(let p of data) {
+        if(!products.has(p.id)) throw new Error('invalid product id')
+        const currentStock = products.get(p.id)?.stock as number
+        if(p.stock > currentStock) throw new Error('insufficiant stock')
+        await t.product.update({ where: { id: p.id }, data: { stock: { decrement: p.stock } } })
+      }
+      
+      await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } })
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
   }
 
   async getProductById(id: number): Promise<Product | null> {
@@ -203,6 +217,11 @@ class SqlServerDataStore implements ISqlServer {
       .join('&')
       .toString();
     return query;
+  }
+
+  async getProductsByVendorId(vendorId: number): Promise<Array<Product>> {
+    const products = await this.db.product.findMany({ where: { vendorId } })
+    return products
   }
 }
 

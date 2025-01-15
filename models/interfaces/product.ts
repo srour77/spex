@@ -14,6 +14,7 @@ interface IProduct {
         specs: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
       },
   ): Promise<Array<Product>>;
+  getProductsByVendorId(vendorId: number): Promise<Array<Product>>;
 }
 
 export default IProduct;
