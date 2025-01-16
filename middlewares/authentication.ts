@@ -11,7 +11,7 @@ class AuthenticationMiddleware {
     } = req;
     const decoded = this.getTokenPayload(String(authorization));
 
-    if (!decoded) res.status(StatusCodes.UNAUTHORIZED).json({ message: 'invalid token', success: false });
+    if (!decoded) { res.status(StatusCodes.UNAUTHORIZED).json({ message: 'invalid token', success: false }); return; }
 
     if (decoded?.role === Roles.customer) Object.defineProperty(res.locals, Roles.customer, { value: decoded, enumerable: true });
     else Object.defineProperty(res.locals, Roles.vendor, { value: decoded, enumerable: true });
@@ -34,8 +34,9 @@ class AuthenticationMiddleware {
 
   static authorizeUser(roles: Array<Roles>) {
     const f: RequestHandler<any, APIResponse> = async(req, res, next) => {
-        const role = res.locals[Roles.customer].role || res.locals[Roles.vendor].role || null
-        if(!role || !roles.includes(role)) res.status(StatusCodes.UNAUTHORIZED).json({ message: 'unauthorized', success: false })
+      const role = res.locals[Roles.customer]?.role || res.locals[Roles.vendor]?.role || null
+      if(!role || !roles.includes(role)) { res.status(StatusCodes.UNAUTHORIZED).json({ message: 'unauthorized', success: false }); return; }
+      next()
     }
 
     return f

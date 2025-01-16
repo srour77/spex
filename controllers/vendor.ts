@@ -25,6 +25,23 @@ class VendorController {
     const token = this.services.generateToken({ id, email: req.body.email });
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true, token });
   };
+
+  login: RequestHandler<any, APIResponse & { token?: string }, Pick<Vendor, 'email' | 'password'>> = async (req, res, next) => {
+    const { email, password } = req.body;
+    const vendor = await this.db.getVendorByEmail(email);
+    if (!vendor) {
+      res.status(StatusCodes.OK).json({ message: 'invalid email', success: false });
+      return;
+    }
+
+    if (!await compare(password, vendor.password)) {
+      res.status(StatusCodes.OK).json({ message: 'invalid email/password', success: false });
+      return;
+    }
+
+    const token = this.services.generateToken({ id: vendor.id, email });
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, token });
+  };
 }
 
 export default VendorController;

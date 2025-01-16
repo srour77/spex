@@ -1,10 +1,12 @@
 import { RequestHandler } from 'express';
 import ISqlServer from '../models/interfaces/ISqlServer';
-import { Customer, Vendor } from '@prisma/client';
+import { Customer, Product, Vendor } from '@prisma/client';
 import { APIResponse } from '../globals/types';
 import { StatusCodes } from 'http-status-codes';
 import { hash, compare } from 'bcrypt';
 import CustomerServices from '../services/customer';
+import { Roles } from '../globals/enums';
+import PaymentHandler from '../services/payment';
 
 class CustomerController {
   private db: ISqlServer;
@@ -53,6 +55,12 @@ class CustomerController {
     const token = this.services.generateToken(customer);
     res.status(StatusCodes.OK).json({ message: 'success', success: true, token });
   };
+
+  buy: RequestHandler<any, APIResponse, Array<Pick<Product, 'id' | 'stock'>>> = async(req, res, next) => {
+    const { [Roles.customer]: { id } } = res.locals;
+    await this.db.buyProducts(id, req.body);
+    res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
+  }
 }
 
 export default CustomerController;

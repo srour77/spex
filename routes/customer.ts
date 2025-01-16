@@ -21,6 +21,7 @@ class CustomerRouter {
     this.router.get('/get/:id', authenticate, authorize([Roles.customer]), this.controller.getById);
     this.router.post('/new', this.controller.create);
     this.router.post('/login', this.controller.login);
+    this.router.post('/buy', authenticate, authorize([Roles.customer]), this.controller.buy);
   }
 
   getRouter(): Router {

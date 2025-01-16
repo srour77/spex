@@ -5,8 +5,10 @@ interface IVendor {
   updateVendor(id: number, data: Partial<Pick<Vendor, 'name' | 'address' | 'phone'>>): Promise<void>;
   deleteVendor(id: number): Promise<void>;
   getVendorById(id: number): Promise<void>;
+  getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password'> | null>;
   resetVendorPassword(id: number, password: string): Promise<void>;
   getVendorCount(email: string): Promise<number>;
+  getVendorIdByProductId(productId: number): Promise<number | null>;
 }
 
 export default IVendor;

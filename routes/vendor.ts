@@ -16,6 +16,7 @@ class VendorRouter {
   buildRoutes(): void {
     this.router.get('/get');
     this.router.post('/new', this.controller.create);
+    this.router.post('/login', this.controller.login)
   }
 
   getRouter(): Router {

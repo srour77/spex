@@ -7,7 +7,7 @@ export type cpuSpecs = {
   l2Cache: number;
   l3Cache?: number;
   baseClock: number;
-  boostClock: number;
+  boostClock?: number;
   architecture: string;
   socket: string;
   integratedGraphics?: string;
@@ -30,7 +30,7 @@ export type gpuSpecs = {
 
 export type motherBoardSpecs = {
   socket: string;
-  memory: string;
+  memory: number;
   lan?: string;
   storage?: string;
   usb?: string;

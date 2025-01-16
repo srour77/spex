@@ -1,6 +1,9 @@
 import { Vendor, Customer, Order, Product_Order, Product, PrismaClient, Prisma } from '@prisma/client';
 import { cpuSpecs, ramSpecs, gpuSpecs, motherBoardSpecs, driveSpecs, monitorSpecs, keyboardSpecs, mouseSpecs } from '../globals/types';
 import ISqlServer from './interfaces/ISqlServer';
+import PaymentHandler from '../services/payment';
+import CustomError from '../errors/customError';
+import { StatusCodes } from 'http-status-codes';
 
 class SqlServerDataStore implements ISqlServer {
   db: PrismaClient;
@@ -33,6 +36,11 @@ class SqlServerDataStore implements ISqlServer {
   async getVendorCount(email: string): Promise<number> {
     const count = await this.db.vendor.count({ where: { email } });
     return count;
+  }
+
+  async getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password'> | null> {
+    const vendor = await this.db.vendor.findFirst({ where: { email }, select: { id: true, password: true } })
+    return vendor
   }
 
   async createCustomer(data: Omit<Customer, 'id'>): Promise<number> {
@@ -107,23 +115,37 @@ class SqlServerDataStore implements ISqlServer {
   async buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void> {
     await this.db.$transaction(
       async t => {
-        const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) } }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]));
+        const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) }, isDeleted: false }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]));
+        const updatePromises = []
         for (let p of data) {
-          if (!products.has(p.id)) throw new Error('invalid product id');
+          if (!products.has(p.id)) throw new CustomError('invalid product id', StatusCodes.BAD_REQUEST);
           const currentStock = products.get(p.id)?.stock as number;
-          if (p.stock > currentStock) throw new Error('insufficient stock');
-          await t.product.update({ where: { id: p.id }, data: { stock: { decrement: p.stock } } });
+          if (p.stock > currentStock) throw new CustomError('insufficient stock', StatusCodes.BAD_REQUEST);
+          updatePromises.push(t.product.update({ where: { id: p.id }, data: { stock: { decrement: p.stock } } }));
         }
 
+        await new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve('done');
+          }, 6000)
+        });
+        
+        await Promise.all(updatePromises);
         await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } });
+        PaymentHandler.processPayment();
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      { maxWait: 60000, timeout: 120000, isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
   }
 
   async getProductById(id: number): Promise<Product | null> {
     const product = await this.db.product.findFirst({ where: { id } });
     return product;
+  }
+
+  async getVendorIdByProductId(productId: number): Promise<number | null> {
+    const vendor = await this.db.vendor.findFirst({ where: { products: { some: { id: productId } } }, select: { id: true } })
+    return vendor?.id || null;
   }
 
   async searchProducts(
@@ -164,7 +186,7 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async getAllProducts(): Promise<Array<Product>> {
-    const products = await this.db.product.findMany();
+    const products = await this.db.product.findMany({ where: { isDeleted: false } } )
     return products;
   }
 

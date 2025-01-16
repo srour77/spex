@@ -4,6 +4,7 @@ import { Product, Vendor } from '@prisma/client';
 import { APIResponse } from '../globals/types';
 import { StatusCodes } from 'http-status-codes';
 import jwt from 'jsonwebtoken';
+import { Roles } from '../globals/enums';
 
 class ProductController {
   private db: ISqlServer;
@@ -12,21 +13,23 @@ class ProductController {
     this.db = _db;
   }
 
-  create: RequestHandler<any, APIResponse, Omit<Product, 'id'>> = async (req, res, next) => {
-    const token = req.headers.authorization?.split('Bearer ')[1] as string;
-    const obj = jwt.decode(token) as Pick<Vendor, 'id' | 'email'>;
-    req.body.vendorId = obj.id;
+  create: RequestHandler<any, APIResponse & { productId?: number }, Omit<Product, 'id'>> = async (req, res, next) => {
+    const { [Roles.vendor]: { id } } = res.locals
+    req.body.vendorId = id;
     req.body.year = new Date(req.body.year);
-    const id = await this.db.createProduct(req.body);
-    res.status(StatusCodes.CREATED).json({ message: 'success', success: true });
+    const productId = await this.db.createProduct(req.body);
+    res.status(StatusCodes.CREATED).json({ message: 'success', success: true, productId });
   };
 
   update: RequestHandler<{ id: string }, APIResponse, Omit<Product, 'id'>> = async (req, res, next) => {
+    const { [Roles.vendor]: { id } } = res.locals;
     const productId = parseInt(req.params.id);
     if (isNaN(productId)) {
       res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
       return;
     }
+
+    if(await this.db.getVendorIdByProductId(productId) !== id) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false }); return; }
     await this.db.updateProduct(productId, req.body);
     res.status(StatusCodes.OK).json({ message: 'success', success: true });
   };
