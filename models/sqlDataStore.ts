@@ -153,17 +153,40 @@ class SqlServerDataStore implements ISqlServer {
       Pick<Product, 'category'> & {
         minPrice?: number;
         maxPrice?: number;
-        specs: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
-      },
+        specs?: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
+      }
   ): Promise<Array<Product>> {
-    const { vendorId, category, isNew, minPrice, maxPrice, specs } = data;
-    let query = this.generateSpecsQuery(specs) + ` AND category = ${category} `;
-    if (minPrice != undefined) query += ` AND price >= ${minPrice} `;
-    if (maxPrice != undefined) query += ` AND price <= ${maxPrice} `;
-    if (vendorId != undefined) query += ` AND vendorId <= ${vendorId} `;
-    if (isNew != undefined) query += ` AND isNew = ${isNew ? 1 : 0} `;
+    const { category, vendorId, isNew, minPrice, maxPrice, specs } = data;
+    const param = 'p';
+    let counter = 5;
+    let query = `
+    SELECT *
+    FROM Product
+    WHERE 
+        isDeleted = 0 AND
+        category = @p1 AND
+        (@p2 IS NULL OR price >= @p2) AND
+        (@p3 IS NULL OR price <= @p3) AND
+        (@p4 IS NULL OR vendorId = @p4) AND
+        (@p5 IS NULL OR isNew = @p5)
+  `;
 
-    const products = (await this.db.$queryRaw`select * from product where ${query}`) as Array<Product>;
+    const params: Array<any> = [category, minPrice || null, maxPrice || null, vendorId || null, isNew || null];
+
+    if (specs) {
+      Object.entries(specs).forEach(([key, value]) => {
+        let operator = ' = ';
+        query += ` AND JSON_VALUE(specs, '$.' + @${param + ++counter})`;
+        if (key === 'baseClock') operator = ' >= ';
+        query += `${operator} @${param + ++counter}`;
+        params.push(key);
+        params.push(value);
+      });
+    }
+
+    console.log(query);
+
+    const products = (await this.db.$queryRawUnsafe(query, ...params)) as Array<Product>;
     return products;
   }
 
