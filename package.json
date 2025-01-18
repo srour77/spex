@@ -2,7 +2,7 @@
   "scripts": {
     "build": "tsc",
     "run": "node dist/server.js",
-    "dev": "nodemon server.ts",
+    "dev": "nodemon src/server.ts",
     "format": "prettier --write .",
     "check-format": "prettier --check ."
   },

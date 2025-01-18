@@ -9,6 +9,7 @@ import CustomerRouter from './routes/customer';
 import errorMiddleware from './middlewares/error';
 import NotFoundMiddleware from './middlewares/notFound';
 
+console.log(process.env.DATABASE_URL);
 const app = express();
 
 app.use(express.json());
