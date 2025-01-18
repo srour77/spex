@@ -3,6 +3,7 @@ WORKDIR /spex
 COPY /src /spex/
 COPY package.json /spex/
 COPY .env /spex/
+COPY tsconfig.json /spex/
 RUN npm install
 RUN npx prisma db pull
 RUN npx prisma migrate dev
