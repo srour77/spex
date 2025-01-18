@@ -34,7 +34,7 @@ class VendorController {
       return;
     }
 
-    if (!await compare(password, vendor.password)) {
+    if (!(await compare(password, vendor.password))) {
       res.status(StatusCodes.OK).json({ message: 'invalid email/password', success: false });
       return;
     }

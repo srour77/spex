@@ -47,7 +47,7 @@ class CustomerController {
       return;
     }
 
-    if (!await compare(password, customer.password)) {
+    if (!(await compare(password, customer.password))) {
       res.status(StatusCodes.OK).json({ message: 'invalid email/password', success: false });
       return;
     }
@@ -56,11 +56,13 @@ class CustomerController {
     res.status(StatusCodes.OK).json({ message: 'success', success: true, token });
   };
 
-  buy: RequestHandler<any, APIResponse, Array<Pick<Product, 'id' | 'stock'>>> = async(req, res, next) => {
-    const { [Roles.customer]: { id } } = res.locals;
+  buy: RequestHandler<any, APIResponse, Array<Pick<Product, 'id' | 'stock'>>> = async (req, res, next) => {
+    const {
+      [Roles.customer]: { id }
+    } = res.locals;
     await this.db.buyProducts(id, req.body);
     res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
-  }
+  };
 }
 
 export default CustomerController;

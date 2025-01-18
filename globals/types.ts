@@ -39,9 +39,10 @@ export type motherBoardSpecs = {
 
 export type driveSpecs = {
   size: number;
+  type: 'hdd' | 'ssd';
   readSpeed: number;
   writeSpeed: number;
-  interface: string;
+  interface?: string;
   cache?: number;
 };
 

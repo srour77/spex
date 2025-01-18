@@ -1,4 +1,6 @@
-import 'express-async-errors'
+import dotenv from 'dotenv';
+dotenv.config();
+import 'express-async-errors';
 import express from 'express';
 import VendorRouter from './routes/vendor';
 import SqlServerDataStore from './models/sqlDataStore';
@@ -17,8 +19,8 @@ app.use('/vendor', new VendorRouter(db).getRouter());
 app.use('/product', new ProductRouter(db).getRouter());
 app.use('/customer', new CustomerRouter(db).getRouter());
 
-app.use(errorMiddleware)
-app.use(NotFoundMiddleware)
+app.use(errorMiddleware);
+app.use(NotFoundMiddleware);
 
 app.listen(2000, () => {
   console.log('server is running');

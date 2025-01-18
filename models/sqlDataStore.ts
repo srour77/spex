@@ -39,8 +39,8 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password'> | null> {
-    const vendor = await this.db.vendor.findFirst({ where: { email }, select: { id: true, password: true } })
-    return vendor
+    const vendor = await this.db.vendor.findFirst({ where: { email }, select: { id: true, password: true } });
+    return vendor;
   }
 
   async createCustomer(data: Omit<Customer, 'id'>): Promise<number> {
@@ -82,9 +82,9 @@ class SqlServerDataStore implements ISqlServer {
         id: true,
         customerId: true,
         products: {
-          select: { price: true, itemNo: true, orderId: true, productId: true, product: { select: { name: true } } },
-        },
-      },
+          select: { price: true, itemNo: true, orderId: true, productId: true, product: { select: { name: true } } }
+        }
+      }
     });
     return orders;
   }
@@ -116,7 +116,7 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.$transaction(
       async t => {
         const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) }, isDeleted: false }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]));
-        const updatePromises = []
+        const updatePromises = [];
         for (let p of data) {
           if (!products.has(p.id)) throw new CustomError('invalid product id', StatusCodes.BAD_REQUEST);
           const currentStock = products.get(p.id)?.stock as number;
@@ -127,14 +127,14 @@ class SqlServerDataStore implements ISqlServer {
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve('done');
-          }, 6000)
+          }, 6000);
         });
-        
+
         await Promise.all(updatePromises);
         await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } });
         PaymentHandler.processPayment();
       },
-      { maxWait: 60000, timeout: 120000, isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      { maxWait: 60000, timeout: 120000, isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
   }
 
@@ -144,7 +144,7 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async getVendorIdByProductId(productId: number): Promise<number | null> {
-    const vendor = await this.db.vendor.findFirst({ where: { products: { some: { id: productId } } }, select: { id: true } })
+    const vendor = await this.db.vendor.findFirst({ where: { products: { some: { id: productId } } }, select: { id: true } });
     return vendor?.id || null;
   }
 
@@ -153,7 +153,7 @@ class SqlServerDataStore implements ISqlServer {
       Pick<Product, 'category'> & {
         minPrice?: number;
         maxPrice?: number;
-        specs?: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
+        specs?: Partial<cpuSpecs> | Partial<ramSpecs> | Partial<gpuSpecs> | Partial<motherBoardSpecs> | Partial<driveSpecs> | Partial<monitorSpecs> | Partial<mouseSpecs> | Partial<keyboardSpecs>;
       }
   ): Promise<Array<Product>> {
     const { category, vendorId, isNew, minPrice, maxPrice, specs } = data;
@@ -196,7 +196,7 @@ class SqlServerDataStore implements ISqlServer {
       Partial<Pick<motherBoardSpecs, 'socket'>> &
       Partial<Pick<gpuSpecs, 'cores' | 'memoryType' | 'memorySize'>> &
       Partial<Pick<monitorSpecs, 'size' | 'panel' | 'refreshRate'>> &
-      Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'>>,
+      Partial<Pick<driveSpecs, 'size' | 'readSpeed' | 'writeSpeed'>>
   ): string {
     const keys: (keyof typeof specs)[] = ['cores', 'threads', 'baseClock', 'socket', 'size', 'speed', 'memorySize', 'socket', 'cores', 'memoryType', 'memorySize', 'size', 'panel', 'refreshRate', 'size', 'readSpeed', 'writeSpeed'];
     const query = keys
@@ -209,7 +209,7 @@ class SqlServerDataStore implements ISqlServer {
   }
 
   async getAllProducts(): Promise<Array<Product>> {
-    const products = await this.db.product.findMany({ where: { isDeleted: false } } )
+    const products = await this.db.product.findMany({ where: { isDeleted: false } });
     return products;
   }
 
@@ -290,6 +290,11 @@ class SqlServerDataStore implements ISqlServer {
   async getProductsByVendorId(vendorId: number): Promise<Array<Product>> {
     const products = await this.db.product.findMany({ where: { vendorId } });
     return products;
+  }
+
+  async getProductsByName(name: string): Promise<Array<Pick<Product, 'id' | 'name' | 'price'>>> {
+    const product = await this.db.product.findMany({ where: { name: { contains: name } }, select: { id: true, name: true, price: true } });
+    return product;
   }
 }
 

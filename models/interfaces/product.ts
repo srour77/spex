@@ -11,12 +11,13 @@ interface IProduct {
       Pick<Product, 'category'> & {
         minPrice?: number;
         maxPrice?: number;
-        specs: Partial<cpuSpecs> & Partial<ramSpecs> & Partial<gpuSpecs> & Partial<motherBoardSpecs> & Partial<driveSpecs> & Partial<monitorSpecs>;
-      },
+        specs: Partial<cpuSpecs> | Partial<ramSpecs> | Partial<gpuSpecs> | Partial<motherBoardSpecs> | Partial<driveSpecs> | Partial<monitorSpecs> | Partial<keyboardSpecs> | Partial<mouseSpecs>;
+      }
   ): Promise<Array<Product>>;
   getProductsByVendorId(vendorId: number): Promise<Array<Product>>;
   getAllProducts(): Promise<Array<Product>>;
   buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void>;
+  getProductsByName(name: string): Promise<Array<Pick<Product, 'id' | 'name' | 'price'>>>;
 }
 
 export default IProduct;

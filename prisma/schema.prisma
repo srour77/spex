@@ -30,10 +30,18 @@ model Product {
   isNew        Boolean
   isDeleted    Boolean           @default(false)
   category     String            @db.VarChar(40)
-  specs        String?           @db.VarChar(600)
+  specs        String            @db.VarChar(600)
   vendorId     Int
   vendor       Vendor            @relation(fields: [vendorId], references: [id])
   orders       Product_Order[]
+  images       ProductImages[]
+}
+
+model ProductImages {
+  id          String     @id @default(uuid())
+  name        String     @db.NVarChar(50)
+  productId   Int
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Customer {

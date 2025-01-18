@@ -1,15 +1,15 @@
 class PaymentHandler {
-    static async processPayment(): Promise<void> {
-        console.log('start');
+  static async processPayment(): Promise<void> {
+    console.log('start');
 
-        await new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve('success')
-            }, 5000);
-        })
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve('success');
+      }, 5000);
+    });
 
-        console.log('finish');
-    }
+    console.log('finish');
+  }
 }
 
-export default PaymentHandler
+export default PaymentHandler;

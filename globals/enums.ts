@@ -3,15 +3,14 @@ export enum Categories {
   'RAM',
   'GPU',
   'MOTHERBOARD',
-  'HDD',
-  'SDD',
+  'DRIVE',
   'CASE',
   'MOUSE',
   'KEYBOARD',
-  'MONITOR',
+  'MONITOR'
 }
 
 export enum Roles {
   customer = 'customer',
-  vendor = 'vendor',
+  vendor = 'vendor'
 }
