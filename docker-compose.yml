@@ -1,20 +1,29 @@
 version: '3.8'
 services:
-  database:
+  my-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver
+    container_name: database_instance
     ports:
-      - '1433:1433'
+      - "1433:1433"
+    networks:
+      - my-net
     environment:
-      SA_PASSWORD: 'YourStrongPassword123!'
-      ACCEPT_EULA: 'Y'
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "someStrongPassword"
+    restart: always
 
-  app:
+  spex:
     build: .
-    container_name: spex
+    container_name: spex_instance
+    restart: always
+    depends_on:
+      - my-db
     ports:
       - '2000:2000'
-    environment:
-      DATABASE_URL: 'sqlserver://database:1433;database=mydb;user=sa;password=YourStrongPassword123!;'
-    depends_on:
-      - database
+    networks:
+      - my-net
+    command: sh -c "npx prisma migrate dev --schema=/spex/src/prisma/schema.prisma && node /spex/dist/server.js"
+
+networks:
+   my-net:
+    driver: bridge
