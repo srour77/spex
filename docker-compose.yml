@@ -7,9 +7,13 @@ services:
       - "1433:1433"
     networks:
       - my-net
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+    secrets:
+      - dbpass
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "someStrongPassword"
+      MSSQL_SA_PASSWORD: /run/secrets/dbpass
     restart: always
 
   spex:
@@ -27,3 +31,10 @@ services:
 networks:
    my-net:
     driver: bridge
+
+volumes:
+  sqlserverdata:
+
+secrets:
+  dbpass:
+    file: ./secrets/dbpass.txt
