@@ -155,12 +155,12 @@ class SqlServerDataStore implements ISqlServer {
         maxPrice?: number;
         specs?: Partial<cpuSpecs> | Partial<ramSpecs> | Partial<gpuSpecs> | Partial<motherBoardSpecs> | Partial<driveSpecs> | Partial<monitorSpecs> | Partial<mouseSpecs> | Partial<keyboardSpecs>;
       }
-  ): Promise<Array<Product>> {
+  ): Promise<Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>> {
     const { category, vendorId, isNew, minPrice, maxPrice, specs } = data;
     const param = 'p';
     let counter = 5;
     let query = `
-    SELECT *
+    SELECT [id], [name], [price], [stock], [isNew], [desc]
     FROM Product
     WHERE 
         isDeleted = 0 AND
@@ -186,7 +186,7 @@ class SqlServerDataStore implements ISqlServer {
 
     console.log(query);
 
-    const products = (await this.db.$queryRawUnsafe(query, ...params)) as Array<Product>;
+    const products = (await this.db.$queryRawUnsafe(query, ...params)) as Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>;
     return products;
   }
 

@@ -13,7 +13,7 @@ interface IProduct {
         maxPrice?: number;
         specs: Partial<cpuSpecs> | Partial<ramSpecs> | Partial<gpuSpecs> | Partial<motherBoardSpecs> | Partial<driveSpecs> | Partial<monitorSpecs> | Partial<keyboardSpecs> | Partial<mouseSpecs>;
       }
-  ): Promise<Array<Product>>;
+  ): Promise<Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>>;
   getProductsByVendorId(vendorId: number): Promise<Array<Product>>;
   getAllProducts(): Promise<Array<Product>>;
   buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void>;

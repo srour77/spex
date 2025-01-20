@@ -1,13 +1,13 @@
 export enum Categories {
-  'CPU',
-  'RAM',
-  'GPU',
-  'MOTHERBOARD',
-  'DRIVE',
-  'CASE',
-  'MOUSE',
-  'KEYBOARD',
-  'MONITOR'
+  'CPU' = 'cpu',
+  'RAM' = 'ram',
+  'GPU' = 'gpu',
+  'MOTHERBOARD' = 'motherboard',
+  'DRIVE' = 'driver',
+  'CASE' = 'case',
+  'MOUSE' = 'mouse',
+  'KEYBOARD' = 'keyboard',
+  'MONITOR' = 'monitor'
 }
 
 export enum Roles {

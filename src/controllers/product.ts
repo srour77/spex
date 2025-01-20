@@ -18,6 +18,7 @@ class ProductController {
     } = res.locals;
     req.body.vendorId = id;
     req.body.year = new Date(req.body.year);
+    req.body.specs = JSON.stringify(req.body.specs)
     const productId = await this.db.createProduct(req.body);
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true, productId });
   };
@@ -83,7 +84,7 @@ class ProductController {
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
   };
 
-  searchProduct: RequestHandler<any, APIResponse & { products?: Array<Product> }, any, any> = async (req, res, next) => {
+  searchProduct: RequestHandler<any, APIResponse & { products?: Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>> }, any, any> = async (req, res, next) => {
     const { category, isNew, minPrice, maxPrice, vendorId } = req.query;
 
     const keys = Object.keys(req.query).filter(k => !['category', 'isNew', 'minPrice', 'maxPrice', 'vendorId'].includes(k));

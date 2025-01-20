@@ -12,7 +12,7 @@ type generalSearchSchema = {
 };
 
 const cpuSpecsSearchSchema = joi.object<cpuSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.CPU).required(),
+  category: joi.string().valid(Categories.CPU).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -61,7 +61,7 @@ const createOrUpdateCpuSpecsSchema = joi.object<cpuSpecs & { others: object }>({
 });
 
 const gpuSpecsSearchSchema = joi.object<gpuSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.GPU).required(),
+  category: joi.string().valid(Categories.GPU).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -93,7 +93,7 @@ const createOrUpdateGpuSpecsSchema = joi.object<gpuSpecs & { others: object }>({
 });
 
 const ramSpecsSearchSchema = joi.object<ramSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.RAM).required(),
+  category: joi.string().valid(Categories.RAM).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -130,7 +130,7 @@ const CreateOrUpdateRamSpecsSchema = joi.object<ramSpecs & { others: object }>({
 });
 
 const motherBoardSpecsSearchSchema = joi.object<motherBoardSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.MOTHERBOARD).required(),
+  category: joi.string().valid(Categories.MOTHERBOARD).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -161,7 +161,7 @@ const CreateOrUpdateMotherBoardSpecsSchema = joi.object<motherBoardSpecs & { oth
 });
 
 const driveSpecsSearchSchema = joi.object<driveSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.DRIVE).required(),
+  category: joi.string().valid(Categories.DRIVE).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -191,7 +191,7 @@ const CreateOrUpdateDriveSpecsSchema = joi.object<driveSpecs & { others: object 
 });
 
 const monitorSpecsSearchSchema = joi.object<monitorSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.MONITOR).required(),
+  category: joi.string().valid(Categories.MONITOR).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -222,7 +222,7 @@ const CreateOrUpdateMonitorSpecsSchema = joi.object<monitorSpecs & { others: obj
 });
 
 const mouseSpecsSearchSchema = joi.object<mouseSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.MOUSE).required(),
+  category: joi.string().valid(Categories.MOUSE).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -238,7 +238,7 @@ const CreateOrUpdateMouseSpecsSchema = joi.object<mouseSpecs & { others: object 
 });
 
 const keyboardSpecsSearchSchema = joi.object<keyboardSpecs & generalSearchSchema>({
-  category: joi.string().allow(Categories.KEYBOARD).required(),
+  category: joi.string().valid(Categories.KEYBOARD).required(),
   minPrice: joi.number().integer().min(1),
   maxPrice: joi.number().integer().greater(joi.ref('minPrice')),
   vendorId: joi.number().integer().min(1),
@@ -272,7 +272,7 @@ export const updateProductSchema = joi.object<Omit<Product, 'id' | 'isDeleted' |
   warranty: joi.number().integer().min(1).max(5),
   model: joi.string().min(1).max(30),
   year: joi.number().integer().min(2000).max(new Date().getFullYear()),
-  category: joi.string().valid(...Object.keys(Categories)),
+  category: joi.string().valid(...Object.values(Categories)),
   specs: joi
     .alternatives()
     .try(
@@ -295,10 +295,11 @@ export const createProductSchema = joi.object<Omit<Product, 'id'>>({
   manufacturer: joi.string().required(),
   warranty: joi.number().integer().min(1).max(5).required(),
   model: joi.string().min(1).max(30).required(),
+  isNew: joi.bool().required(),
   year: joi.number().integer().min(2000).max(new Date().getFullYear()).required(),
   category: joi
     .string()
-    .valid(...Object.keys(Categories))
+    .valid(...Object.values(Categories))
     .required(),
   specs: joi
     .alternatives()
