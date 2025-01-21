@@ -100,6 +100,14 @@ class ProductController {
 
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
   };
+
+  getAllProductsByVendorId: RequestHandler<{ id: string }, APIResponse & { products?: Array<Product> }> = async(req, res, next) => {
+    let vendorId = parseInt(req.params.id)
+    if(isNaN(vendorId) || await this.db.getVendorCount(vendorId) == 0) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid vendor id', success: false }); return; }
+
+    const products = await this.db.getAllProductsByVendorId(vendorId)
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, products })
+  }
 }
 
 export default ProductController;

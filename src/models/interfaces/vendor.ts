@@ -7,6 +7,7 @@ interface IVendor {
   getVendorById(id: number): Promise<void>;
   getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password'> | null>;
   resetVendorPassword(id: number, password: string): Promise<void>;
+  getVendorCount(id: number): Promise<number>;
   getVendorCount(email: string): Promise<number>;
   getVendorIdByProductId(productId: number): Promise<number | null>;
 }

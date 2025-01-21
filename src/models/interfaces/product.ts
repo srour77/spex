@@ -18,6 +18,7 @@ interface IProduct {
   getAllProducts(): Promise<Array<Product>>;
   buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void>;
   getProductsByName(name: string): Promise<Array<Pick<Product, 'id' | 'name' | 'price'>>>;
+  getAllProductsByVendorId(vendorId: number): Promise<Array<Product>>;
 }
 
 export default IProduct;

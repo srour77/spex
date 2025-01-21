@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import ISqlServer from '../models/interfaces/ISqlServer';
-import { Customer, Product, Vendor } from '@prisma/client';
+import { Customer, Order, Product, Product_Order, Vendor } from '@prisma/client';
 import { APIResponse } from '../globals/types';
 import { StatusCodes } from 'http-status-codes';
 import { hash, compare } from 'bcrypt';
@@ -63,6 +63,12 @@ class CustomerController {
     await this.db.buyProducts(id, req.body);
     res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
   };
+
+  getAllOrders: RequestHandler<any, APIResponse & { orders: Array<Pick<Order, 'id'> & { products: Array<Pick<Product_Order, 'productId' | 'price' | 'itemNo'> & { product: Pick<Product, 'name' | 'desc'>  }> }> }> = async(req, res, next) => {
+    const { [Roles.customer]: { id } } = res.locals;
+    const orders = await this.db.getAllOrdersByCustomerId(id);
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, orders });
+  }
 }
 
 export default CustomerController;

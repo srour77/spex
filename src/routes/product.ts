@@ -22,6 +22,7 @@ class ProductRouter {
     this.router.get('/search/:name', this.controller.getByName);
     this.router.get('/search', validateReqQuery(searchProductsSchema), this.controller.searchProduct);
     this.router.get('/get/all', this.controller.getAllProducts);
+    this.router.get('/get/vendor/:id', this.controller.getAllProducts);
     this.router.get('/get/:id', this.controller.getById);
     this.router.put('/update/:id', authenticate, authorize([Roles.vendor]), validateReqBody(updateProductSchema), this.controller.update);
     this.router.post('/new', authenticate, authorize([Roles.vendor]), validateReqBody(createProductSchema), this.controller.create);

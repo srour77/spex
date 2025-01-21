@@ -33,8 +33,12 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.vendor.update({ where: { id }, data: { password } });
   }
 
-  async getVendorCount(email: string): Promise<number> {
-    const count = await this.db.vendor.count({ where: { email } });
+  getVendorCount(id: number): Promise<number>;
+  getVendorCount(email: string): Promise<number>;
+  async getVendorCount(arg: number | string): Promise<number> {
+    let count
+    if(typeof arg == 'string') count = await this.db.vendor.count({ where: { email: arg } });
+    else count = await this.db.vendor.count({ where: { id: arg } })
     return count;
   }
 
@@ -295,6 +299,16 @@ class SqlServerDataStore implements ISqlServer {
   async getProductsByName(name: string): Promise<Array<Pick<Product, 'id' | 'name' | 'price'>>> {
     const product = await this.db.product.findMany({ where: { name: { contains: name } }, select: { id: true, name: true, price: true } });
     return product;
+  }
+
+  async getAllProductsByVendorId(vendorId: number): Promise<Array<Product>> {
+    const products = await this.db.product.findMany({ where: { vendorId } });
+    return products;
+  }
+
+  async getAllOrdersByCustomerId(customerId: number): Promise<Array<Pick<Order, 'id'> & { products: Array<Pick<Product_Order, 'productId' | 'price' | 'itemNo'> & { product: Pick<Product, 'name' | 'desc'>  }> }>> {
+    const orders = await this.db.order.findMany({ where: { customerId }, select: { id: true, products: { select: { productId: true, price: true, itemNo: true, product: { select: { name: true, desc: true } } } } } });
+    return orders;
   }
 }
 
