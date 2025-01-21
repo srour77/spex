@@ -8,13 +8,14 @@ datasource db {
 }
 
 model Vendor {
-  id       Int        @id @default(autoincrement())
-  name     String     @db.NVarChar(100)
-  address  String     @db.NVarChar(200)
-  email    String     @db.VarChar(70)
-  phone    String     @db.Char(11)
-  password String     @db.VarChar(100)
-  products Product[]
+  id            Int        @id @default(autoincrement())
+  name          String     @db.NVarChar(100)
+  address       String     @db.NVarChar(200)
+  email         String     @db.VarChar(70)
+  emailVerified Boolean    @default(false)
+  phone         String     @db.Char(11)
+  password      String     @db.VarChar(100)
+  products      Product[]
 }
 
 model Product {
@@ -45,13 +46,14 @@ model ProductImages {
 }
 
 model Customer {
-  id       Int      @id @default(autoincrement())
-  name     String   @db.NVarChar(100)
-  address  String   @db.NVarChar(200)
-  email    String   @db.VarChar(70)
-  phone    String   @db.Char(11)
-  password String   @db.VarChar(100)
-  orders   Order[]
+  id            Int      @id @default(autoincrement())
+  name          String   @db.NVarChar(100)
+  address       String   @db.NVarChar(200)
+  email         String   @db.VarChar(70)
+  emailVerified Boolean  @default(false)
+  phone         String   @db.Char(11)
+  password      String   @db.VarChar(100)
+  orders        Order[]
 }
 
 model Order {

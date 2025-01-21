@@ -5,6 +5,7 @@ import { APIResponse } from '../globals/types';
 import { StatusCodes } from 'http-status-codes';
 import { hash, compare } from 'bcrypt';
 import VendorServices from '../services/vendor';
+import { Roles } from '../globals/enums';
 
 class VendorController {
   private db: ISqlServer;
@@ -41,6 +42,13 @@ class VendorController {
 
     const token = this.services.generateToken({ id: vendor.id, email });
     res.status(StatusCodes.OK).json({ message: 'success', success: true, token });
+  };
+
+  getProfile: RequestHandler<any, APIResponse & { vendor?: Omit<Vendor, 'id' | 'password'> }> = async (req, res, next) => {
+    const { [Roles.vendor]: { id } } = res.locals;
+    const vendor = await this.db.getVendorById(id) as Vendor;
+    const formattedCustomer = { ...vendor, id: undefined, password: undefined };
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, vendor: formattedCustomer });
   };
 }
 

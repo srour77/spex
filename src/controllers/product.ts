@@ -108,6 +108,14 @@ class ProductController {
     const products = await this.db.getAllProductsByVendorId(vendorId)
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products })
   }
+
+  buy: RequestHandler<any, APIResponse, { products: Array<Pick<Product, 'id' | 'stock'>> }> = async (req, res, next) => {
+    const {
+      [Roles.customer]: { id }
+    } = res.locals;
+    await this.db.buyProducts(id, req.body.products);
+    res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
+  };
 }
 
 export default ProductController;

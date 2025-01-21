@@ -25,8 +25,9 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.vendor.delete({ where: { id } });
   }
 
-  async getVendorById(id: number): Promise<void> {
-    await this.db.vendor.findFirst({ where: { id } });
+  async getVendorById(id: number): Promise<Vendor | null> {
+    const vendor = await this.db.vendor.findFirst({ where: { id } });
+    return vendor;
   }
 
   async resetVendorPassword(id: number, password: string): Promise<void> {

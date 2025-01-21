@@ -26,6 +26,7 @@ class ProductRouter {
     this.router.get('/get/:id', this.controller.getById);
     this.router.put('/update/:id', authenticate, authorize([Roles.vendor]), validateReqBody(updateProductSchema), this.controller.update);
     this.router.post('/new', authenticate, authorize([Roles.vendor]), validateReqBody(createProductSchema), this.controller.create);
+    this.router.post('/buy', authenticate, authorize([Roles.customer]), this.controller.buy);
   }
 
   getRouter(): Router {

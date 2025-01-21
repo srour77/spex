@@ -315,3 +315,13 @@ export const createProductSchema = joi.object<Omit<Product, 'id'>>({
     )
     .required()
 });
+
+export const buyProductsSchema = joi.object({
+  proudcts: joi.array().items({
+    id: joi.number().integer().min(1).required(),
+    stock: joi.number().integer().min(1).required()
+  }).unique((a, b) => {
+    if(a.id == b.id) return true;
+    else return false;
+  })
+})

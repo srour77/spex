@@ -17,13 +17,9 @@ class CustomerController {
     this.services = new CustomerServices(_db);
   }
 
-  getById: RequestHandler<{ id: string }, APIResponse & { customer?: Omit<Customer, 'id' | 'password'> }> = async (req, res, next) => {
-    const customerId = parseInt(req.params.id);
-    if (isNaN(customerId)) {
-      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid customer id', success: false });
-    }
-
-    const customer = (await this.db.getCustomerById(customerId)) as Customer;
+  getProfile: RequestHandler<any, APIResponse & { customer?: Omit<Customer, 'id' | 'password'> }> = async (req, res, next) => {
+    const { [Roles.customer]: { id } } = res.locals;
+    const customer = await this.db.getCustomerById(id) as Customer;
     const formattedCustomer = { ...customer, id: undefined, password: undefined };
     res.status(StatusCodes.OK).json({ message: 'success', success: true, customer: formattedCustomer });
   };
@@ -54,14 +50,6 @@ class CustomerController {
 
     const token = this.services.generateToken(customer);
     res.status(StatusCodes.OK).json({ message: 'success', success: true, token });
-  };
-
-  buy: RequestHandler<any, APIResponse, Array<Pick<Product, 'id' | 'stock'>>> = async (req, res, next) => {
-    const {
-      [Roles.customer]: { id }
-    } = res.locals;
-    await this.db.buyProducts(id, req.body);
-    res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
   };
 
   getAllOrders: RequestHandler<any, APIResponse & { orders: Array<Pick<Order, 'id'> & { products: Array<Pick<Product_Order, 'productId' | 'price' | 'itemNo'> & { product: Pick<Product, 'name' | 'desc'>  }> }> }> = async(req, res, next) => {

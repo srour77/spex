@@ -3,6 +3,8 @@ import ISqlServer from '../models/interfaces/ISqlServer';
 import CustomerController from '../controllers/customer';
 import AuthenticationMiddleware from '../middlewares/authentication';
 import { Roles } from '../globals/enums';
+import { validateReqBody } from '../middlewares/validations';
+import { createCustomerSchema, loginCustomerSchema } from '../requestsSchemas/customer';
 const authenticate = AuthenticationMiddleware.authenticateUser;
 const authorize = AuthenticationMiddleware.authorizeUser;
 
@@ -17,10 +19,9 @@ class CustomerRouter {
   }
 
   buildRoutes(): void {
-    this.router.get('/get/:id', authenticate, authorize([Roles.customer]), this.controller.getById);
-    this.router.post('/new', this.controller.create);
-    this.router.post('/login', this.controller.login);
-    this.router.post('/buy', authenticate, authorize([Roles.customer]), this.controller.buy);
+    this.router.get('/get/profile', authenticate, authorize([Roles.customer]), this.controller.getProfile);
+    this.router.post('/new', validateReqBody(createCustomerSchema), this.controller.create);
+    this.router.post('/login', validateReqBody(loginCustomerSchema), this.controller.login);
     this.router.get('/orders', authenticate, authorize([Roles.customer]), this.controller.getAllOrders);
   }
 
