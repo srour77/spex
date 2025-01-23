@@ -4,7 +4,7 @@ import CustomerController from '../controllers/customer';
 import AuthenticationMiddleware from '../middlewares/authentication';
 import { Roles } from '../globals/enums';
 import { validateReqBody } from '../middlewares/validations';
-import { createCustomerSchema, loginCustomerSchema } from '../requestsSchemas/customer';
+import { createCustomerSchema, loginCustomerSchema, requestPasswordResetSchema, resetPasswordSchema } from '../requestsSchemas/customer';
 const authenticate = AuthenticationMiddleware.authenticateUser;
 const authorize = AuthenticationMiddleware.authorizeUser;
 
@@ -23,6 +23,8 @@ class CustomerRouter {
     this.router.post('/new', validateReqBody(createCustomerSchema), this.controller.create);
     this.router.post('/login', validateReqBody(loginCustomerSchema), this.controller.login);
     this.router.get('/orders', authenticate, authorize([Roles.customer]), this.controller.getAllOrders);
+    this.router.post('/password/requestreset', validateReqBody(requestPasswordResetSchema), this.controller.requestPasswordReset);
+    this.router.post('/password/reset', validateReqBody(resetPasswordSchema), this.controller.resetPassword);
   }
 
   getRouter(): Router {

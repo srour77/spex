@@ -4,7 +4,7 @@ import ProductController from '../controllers/product';
 import AuthenticationMiddleware from '../middlewares/authentication';
 import { Roles } from '../globals/enums';
 import { validateReqBody, validateReqQuery } from '../middlewares/validations';
-import { updateProductSchema, searchProductsSchema, createProductSchema } from '../requestsSchemas/product';
+import { updateProductSchema, searchProductsSchema, createProductSchema, buyProductsSchema } from '../requestsSchemas/product';
 const authenticate = AuthenticationMiddleware.authenticateUser;
 const authorize = AuthenticationMiddleware.authorizeUser;
 
@@ -26,7 +26,7 @@ class ProductRouter {
     this.router.get('/get/:id', this.controller.getById);
     this.router.put('/update/:id', authenticate, authorize([Roles.vendor]), validateReqBody(updateProductSchema), this.controller.update);
     this.router.post('/new', authenticate, authorize([Roles.vendor]), validateReqBody(createProductSchema), this.controller.create);
-    this.router.post('/buy', authenticate, authorize([Roles.customer]), this.controller.buy);
+    this.router.post('/buy', authenticate, authorize([Roles.customer]), validateReqBody(buyProductsSchema), this.controller.buy);
   }
 
   getRouter(): Router {

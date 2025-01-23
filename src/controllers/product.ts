@@ -12,22 +12,23 @@ class ProductController {
     this.db = _db;
   }
 
-  create: RequestHandler<any, APIResponse & { productId?: number }, Omit<Product, 'id'>> = async (req, res, next) => {
+  create: RequestHandler<any, APIResponse & { productId?: number }, Omit<Product, 'id' | 'isDeleted'> & { images: Array<string> }> = async (req, res, next) => {
     const {
       [Roles.vendor]: { id }
     } = res.locals;
     req.body.vendorId = id;
     req.body.year = new Date(req.body.year);
     req.body.specs = JSON.stringify(req.body.specs)
-    const productId = await this.db.createProduct(req.body);
+    const data = { ...req.body, images: undefined }
+    const productId = await this.db.createProduct(data, req.body.images);
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true, productId });
   };
 
-  update: RequestHandler<{ id: string }, APIResponse, Omit<Product, 'id'>> = async (req, res, next) => {
+  update: RequestHandler<{ id: string }, APIResponse, { data: Partial<Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>>, images?: Array<string> } & { images?: Array<string> }> = async (req, res, next) => {
     const {
       [Roles.vendor]: { id }
     } = res.locals;
-    const { specs } = req.body;
+    const { specs } = req.body.data;
     const productId = parseInt(req.params.id);
     if (isNaN(productId)) {
       res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
@@ -38,8 +39,8 @@ class ProductController {
       res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid product id', success: false });
       return;
     }
-    if (specs && Object.getOwnPropertyNames(specs).length > 0) req.body.specs = JSON.stringify(specs);
-    await this.db.updateProduct(productId, req.body);
+    if (specs && Object.getOwnPropertyNames(specs).length > 0) req.body.data.specs = JSON.stringify(specs);
+    await this.db.updateProduct(productId, req.body.data, req.body.images);
     res.status(StatusCodes.OK).json({ message: 'success', success: true });
   };
 

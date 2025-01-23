@@ -30,8 +30,11 @@ class SqlServerDataStore implements ISqlServer {
     return vendor;
   }
 
-  async resetVendorPassword(id: number, password: string): Promise<void> {
-    await this.db.vendor.update({ where: { id }, data: { password } });
+  resetVendorPassword(id: number, password: string): Promise<void>;
+  resetVendorPassword(email: string, password: string): Promise<void>;
+  async resetVendorPassword(arg: number | string, password: string): Promise<void> {
+    if(typeof arg === 'number') await this.db.vendor.update({ where: { id: arg }, data: { password } });
+    else if(typeof arg === 'string') await this.db.vendor.update({ where: { email: arg }, data: { password } });
   }
 
   getVendorCount(id: number): Promise<number>;
@@ -43,8 +46,8 @@ class SqlServerDataStore implements ISqlServer {
     return count;
   }
 
-  async getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password'> | null> {
-    const vendor = await this.db.vendor.findFirst({ where: { email }, select: { id: true, password: true } });
+  async getVendorByEmail(email: string): Promise<Pick<Vendor, 'id' | 'password' | 'email' | 'emailVerified'> | null> {
+    const vendor = await this.db.vendor.findFirst({ where: { email }, select: { id: true, password: true, email: true, emailVerified: true } });
     return vendor;
   }
 
@@ -57,8 +60,11 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.customer.update({ where: { id }, data });
   }
 
-  async updateCustomerPassword(id: number, password: string): Promise<void> {
-    await this.db.customer.update({ where: { id }, data: { password } });
+  updateCustomerPassword(id: number, password: string): Promise<void>
+  updateCustomerPassword(email: string, password: string): Promise<void>
+  async updateCustomerPassword(arg: number | string, password: string): Promise<void> {
+    if(typeof arg === 'number') await this.db.customer.update({ where: { id: arg }, data: { password } });
+    else if(typeof arg === 'string') await this.db.customer.update({ where: { email: arg }, data: { password } });
   }
 
   async getCustomerById(id: number): Promise<Customer | null> {
@@ -66,8 +72,8 @@ class SqlServerDataStore implements ISqlServer {
     return customer;
   }
 
-  async getCustomerByEmail(email: string): Promise<Pick<Customer, 'id' | 'email' | 'password'> | null> {
-    const customer = await this.db.customer.findFirst({ where: { email }, select: { id: true, email: true, password: true } });
+  async getCustomerByEmail(email: string): Promise<Pick<Customer, 'id' | 'email' | 'password' | 'emailVerified'> | null> {
+    const customer = await this.db.customer.findFirst({ where: { email }, select: { id: true, email: true, password: true, emailVerified: true } });
     return customer;
   }
 
@@ -104,13 +110,17 @@ class SqlServerDataStore implements ISqlServer {
     return count;
   }
 
-  async createProduct(data: Omit<Product, 'id'>): Promise<number> {
-    const product = await this.db.product.create({ data, select: { id: true } });
+  async createProduct(data: Omit<Product, 'id' | 'isDeleted'>, images: Array<string> ): Promise<number> {
+    const { name, category, manufacturer, model, desc, stock, year, specs, vendorId, warranty, price, isNew } = data
+    const urls = images.map(img => ({ url: img }))
+    const product = await this.db.product.create({ data: { name, category, manufacturer, model, desc, stock, year, specs, vendorId, warranty, price, isNew, images: { createMany: { data: urls } } }, select: { id: true } });
     return product.id;
   }
 
-  async updateProduct(id: number, data: Omit<Product, 'id'>): Promise<void> {
-    await this.db.$transaction([this.db.product.update({ where: { id }, data })], { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  async updateProduct(id: number, data: Partial<Omit<Product, 'id' | 'isDeleted' | 'isNew' | 'vendorId'>>, images?: Array<string>): Promise<void> {
+    const operations: Array<any> = [this.db.product.update({ where: { id }, data })];
+    if(images) operations.push(...[this.db.productImages.deleteMany({ where: { productId: 1 } }), this.db.productImages.createMany({ data: images?.map(img => ({ productId: id, url: img })) })]);
+    await this.db.$transaction(operations, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
   async deleteProduct(id: number): Promise<void> {
@@ -132,7 +142,7 @@ class SqlServerDataStore implements ISqlServer {
         await new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve('done');
-          }, 6000);
+          }, 2000);
         });
 
         await Promise.all(updatePromises);
@@ -160,12 +170,12 @@ class SqlServerDataStore implements ISqlServer {
         maxPrice?: number;
         specs?: Partial<cpuSpecs> | Partial<ramSpecs> | Partial<gpuSpecs> | Partial<motherBoardSpecs> | Partial<driveSpecs> | Partial<monitorSpecs> | Partial<mouseSpecs> | Partial<keyboardSpecs>;
       }
-  ): Promise<Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>> {
+  ): Promise<Array<Pick<Product, 'id' | 'name' | 'desc' | 'model' | 'price' | 'stock' | 'isNew'>>> {
     const { category, vendorId, isNew, minPrice, maxPrice, specs } = data;
     const param = 'p';
     let counter = 5;
     let query = `
-    SELECT [id], [name], [price], [stock], [isNew], [desc]
+    SELECT [id], [name], [price], [stock], [isNew], [desc], [model]
     FROM Product
     WHERE 
         isDeleted = 0 AND
@@ -191,7 +201,7 @@ class SqlServerDataStore implements ISqlServer {
 
     console.log(query);
 
-    const products = (await this.db.$queryRawUnsafe(query, ...params)) as Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>;
+    const products = (await this.db.$queryRawUnsafe(query, ...params)) as Array<Pick<Product, 'id' | 'name' | 'desc' | 'model' | 'price' | 'stock' | 'isNew'>>;
     return products;
   }
 
@@ -307,8 +317,13 @@ class SqlServerDataStore implements ISqlServer {
     return products;
   }
 
-  async getAllOrdersByCustomerId(customerId: number): Promise<Array<Pick<Order, 'id'> & { products: Array<Pick<Product_Order, 'productId' | 'price' | 'itemNo'> & { product: Pick<Product, 'name' | 'desc'>  }> }>> {
-    const orders = await this.db.order.findMany({ where: { customerId }, select: { id: true, products: { select: { productId: true, price: true, itemNo: true, product: { select: { name: true, desc: true } } } } } });
+  async getAllOrdersByCustomerId(customerId: number): Promise<Array<Pick<Order, 'id'> & { products: Array<Pick<Product_Order, 'price' | 'itemNo'> & { product: Pick<Product, 'id' | 'name' | 'desc'>  }> }>> {
+    const orders = await this.db.order.findMany({ where: { customerId }, select: { id: true, products: { select: { price: true, itemNo: true, product: { select: { id: true, name: true, desc: true } } } } } });
+    return orders;
+  }
+
+  async getOrdersByVendorId(id: number): Promise<Array<Pick<Order, 'id'> & { customer: Pick<Customer, 'name' | 'email'> } & { products: Array<Pick<Product_Order, 'price' | 'itemNo'> & { product: Pick<Product, 'id' | 'name' | 'desc'>  }> }>> {
+    const orders = await this.db.order.findMany({ where: { products: { some: { product: { vendorId: id } } } }, select: { id: true, customer: { select: { name: true, email: true } }, products: { select: { price: true, itemNo: true, product: { select: { id: true, name: true, desc: true } } } } } });
     return orders;
   }
 }

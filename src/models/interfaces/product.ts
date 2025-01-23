@@ -2,8 +2,8 @@ import { Product } from '@prisma/client';
 import { cpuSpecs, driveSpecs, gpuSpecs, keyboardSpecs, monitorSpecs, motherBoardSpecs, mouseSpecs, ramSpecs } from '../../globals/types';
 
 interface IProduct {
-  createProduct(data: Omit<Product, 'id'>): Promise<number>;
-  updateProduct(id: number, data: Omit<Product, 'id'>): Promise<void>;
+  createProduct(data: Omit<Product, 'id' | 'isDeleted'>, images: Array<string>): Promise<number>;
+  updateProduct(id: number, data: Partial<Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>>, images?: Array<string>): Promise<void>;
   deleteProduct(id: number): Promise<void>;
   getProductById(id: number): Promise<Product | null>;
   searchProducts(

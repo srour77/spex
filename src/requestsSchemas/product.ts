@@ -263,31 +263,34 @@ export const searchProductsSchema = joi
   .alternatives()
   .try(cpuSpecsSearchSchema, gpuSpecsSearchSchema, ramSpecsSearchSchema, motherBoardSpecsSearchSchema, driveSpecsSearchSchema, monitorSpecsSearchSchema, mouseSpecsSearchSchema, keyboardSpecsSearchSchema);
 
-export const updateProductSchema = joi.object<Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>>({
-  name: joi.string().min(3).max(100),
-  desc: joi.string().min(10).max(200),
-  stock: joi.number().integer().min(0),
-  price: joi.number().greater(0),
-  manufacturer: joi.string(),
-  warranty: joi.number().integer().min(1).max(5),
-  model: joi.string().min(1).max(30),
-  year: joi.number().integer().min(2000).max(new Date().getFullYear()),
-  category: joi.string().valid(...Object.values(Categories)),
-  specs: joi
-    .alternatives()
-    .try(
-      createOrUpdateCpuSpecsSchema,
-      createOrUpdateGpuSpecsSchema,
-      CreateOrUpdateRamSpecsSchema,
-      CreateOrUpdateMotherBoardSpecsSchema,
-      CreateOrUpdateDriveSpecsSchema,
-      CreateOrUpdateMonitorSpecsSchema,
-      createOrUpdateKeyboardSpecsSchema,
-      CreateOrUpdateMouseSpecsSchema
-    )
+export const updateProductSchema = joi.object<{ data: Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>, images: Array<string> }>({
+  data: joi.object({
+    name: joi.string().min(3).max(100),
+    desc: joi.string().min(10).max(200),
+    stock: joi.number().integer().min(0),
+    price: joi.number().greater(0),
+    manufacturer: joi.string(),
+    warranty: joi.number().integer().min(1).max(5),
+    model: joi.string().min(1).max(30),
+    year: joi.number().integer().min(2000).max(new Date().getFullYear()),
+    category: joi.string().valid(...Object.values(Categories)),
+    specs: joi
+      .alternatives()
+      .try(
+        createOrUpdateCpuSpecsSchema,
+        createOrUpdateGpuSpecsSchema,
+        CreateOrUpdateRamSpecsSchema,
+        CreateOrUpdateMotherBoardSpecsSchema,
+        CreateOrUpdateDriveSpecsSchema,
+        CreateOrUpdateMonitorSpecsSchema,
+        createOrUpdateKeyboardSpecsSchema,
+        CreateOrUpdateMouseSpecsSchema
+      )
+  }),
+  images: joi.array().items(joi.string().dataUri().min(3).max(7)).unique()
 });
 
-export const createProductSchema = joi.object<Omit<Product, 'id'>>({
+export const createProductSchema = joi.object<Omit<Product, 'id' | 'isDeleted'> & { images: Array<string> }>({
   name: joi.string().min(3).max(100).required(),
   desc: joi.string().min(10).max(200),
   stock: joi.number().integer().min(0).required(),
@@ -313,11 +316,12 @@ export const createProductSchema = joi.object<Omit<Product, 'id'>>({
       createOrUpdateKeyboardSpecsSchema,
       CreateOrUpdateMouseSpecsSchema
     )
-    .required()
+    .required(),
+  images: joi.array().min(3).max(7).items(joi.string().uri()).unique().required()
 });
 
 export const buyProductsSchema = joi.object({
-  proudcts: joi.array().items({
+  products: joi.array().items({
     id: joi.number().integer().min(1).required(),
     stock: joi.number().integer().min(1).required()
   }).unique((a, b) => {

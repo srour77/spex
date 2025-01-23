@@ -23,3 +23,12 @@ export const updateCustomerSchema = joi.object<Pick<Customer, 'name' | 'address'
 export const resetCustomerPasswordSchema = joi.object<Omit<Customer, 'id' | 'emailVerified'>>({
     password: joi.string().min(7).max(50).required()
 })
+
+export const requestPasswordResetSchema = joi.object<{ email: string }>({
+    email: joi.string().email().required()
+})
+
+export const resetPasswordSchema = joi.object<{ password: string, token: string }>({
+    password: joi.string().min(7).max(50).required(),
+    token: joi.string().max(400).required()
+})

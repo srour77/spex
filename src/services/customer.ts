@@ -18,6 +18,11 @@ class CustomerServices {
     if ((await this.db.getVendorCount(email)) >= 1) return true;
     return false;
   }
+
+  generateResetPasswordToken(email: string) {
+    const token = jwt.sign({ email, role: Roles.customer }, String(process.env.ResetPasswordSecret), { expiresIn: '1 h' });
+    return token;
+  }
 }
 
 export default CustomerServices;
