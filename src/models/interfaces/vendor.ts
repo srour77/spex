@@ -11,7 +11,7 @@ interface IVendor {
   getVendorCount(id: number): Promise<number>;
   getVendorCount(email: string): Promise<number>;
   getVendorIdByProductId(productId: number): Promise<number | null>;
-  getOrdersByVendorId(id: number): Promise<Array<Pick<Order, 'id'> & { customer: Pick<Customer, 'name' | 'email'> } & { products: Array<Pick<Product_Order, 'price' | 'itemNo'> & { product: Pick<Product, 'id' | 'name' | 'desc'>  }> }>>;
+  getOrdersByVendorId(id: number): Promise<Array<Pick<Order, 'id'> & { customer: Pick<Customer, 'name' | 'email'> } & { products: Array<Pick<Product_Order, 'price' | 'itemNo'> & { product: Pick<Product, 'id' | 'name' | 'desc'> }> }>>;
 }
 
 export default IVendor;

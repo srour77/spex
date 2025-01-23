@@ -18,13 +18,13 @@ class ProductController {
     } = res.locals;
     req.body.vendorId = id;
     req.body.year = new Date(req.body.year);
-    req.body.specs = JSON.stringify(req.body.specs)
-    const data = { ...req.body, images: undefined }
+    req.body.specs = JSON.stringify(req.body.specs);
+    const data = { ...req.body, images: undefined };
     const productId = await this.db.createProduct(data, req.body.images);
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true, productId });
   };
 
-  update: RequestHandler<{ id: string }, APIResponse, { data: Partial<Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>>, images?: Array<string> } & { images?: Array<string> }> = async (req, res, next) => {
+  update: RequestHandler<{ id: string }, APIResponse, { data: Partial<Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>>; images?: Array<string> } & { images?: Array<string> }> = async (req, res, next) => {
     const {
       [Roles.vendor]: { id }
     } = res.locals;
@@ -102,13 +102,16 @@ class ProductController {
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
   };
 
-  getAllProductsByVendorId: RequestHandler<{ id: string }, APIResponse & { products?: Array<Product> }> = async(req, res, next) => {
-    let vendorId = parseInt(req.params.id)
-    if(isNaN(vendorId) || await this.db.getVendorCount(vendorId) == 0) { res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid vendor id', success: false }); return; }
+  getAllProductsByVendorId: RequestHandler<{ id: string }, APIResponse & { products?: Array<Product> }> = async (req, res, next) => {
+    let vendorId = parseInt(req.params.id);
+    if (isNaN(vendorId) || (await this.db.getVendorCount(vendorId)) == 0) {
+      res.status(StatusCodes.BAD_REQUEST).json({ message: 'invalid vendor id', success: false });
+      return;
+    }
 
-    const products = await this.db.getAllProductsByVendorId(vendorId)
-    res.status(StatusCodes.OK).json({ message: 'success', success: true, products })
-  }
+    const products = await this.db.getAllProductsByVendorId(vendorId);
+    res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
+  };
 
   buy: RequestHandler<any, APIResponse, { products: Array<Pick<Product, 'id' | 'stock'>> }> = async (req, res, next) => {
     const {

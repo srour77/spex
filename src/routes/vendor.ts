@@ -25,7 +25,7 @@ class VendorRouter {
     this.router.get('/get/profile', authenticate, authorize([Roles.vendor]), this.controller.getProfile);
     this.router.post('/password/requestreset', validateReqBody(requestPasswordResetSchema), this.controller.requestPasswordReset);
     this.router.post('/password/reset', validateReqBody(resetPasswordSchema), this.controller.resetPassword);
-    this.router.get('/orders', authenticate, authorize([Roles.vendor]), this.controller.getOders)
+    this.router.get('/orders', authenticate, authorize([Roles.vendor]), this.controller.getOders);
   }
 
   getRouter(): Router {

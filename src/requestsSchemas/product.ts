@@ -263,7 +263,7 @@ export const searchProductsSchema = joi
   .alternatives()
   .try(cpuSpecsSearchSchema, gpuSpecsSearchSchema, ramSpecsSearchSchema, motherBoardSpecsSearchSchema, driveSpecsSearchSchema, monitorSpecsSearchSchema, mouseSpecsSearchSchema, keyboardSpecsSearchSchema);
 
-export const updateProductSchema = joi.object<{ data: Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>, images: Array<string> }>({
+export const updateProductSchema = joi.object<{ data: Omit<Product, 'id' | 'isDeleted' | 'vendorId' | 'isNew'>; images: Array<string> }>({
   data: joi.object({
     name: joi.string().min(3).max(100),
     desc: joi.string().min(10).max(200),
@@ -321,11 +321,14 @@ export const createProductSchema = joi.object<Omit<Product, 'id' | 'isDeleted'> 
 });
 
 export const buyProductsSchema = joi.object({
-  products: joi.array().items({
-    id: joi.number().integer().min(1).required(),
-    stock: joi.number().integer().min(1).required()
-  }).unique((a, b) => {
-    if(a.id == b.id) return true;
-    else return false;
-  })
-})
+  products: joi
+    .array()
+    .items({
+      id: joi.number().integer().min(1).required(),
+      stock: joi.number().integer().min(1).required()
+    })
+    .unique((a, b) => {
+      if (a.id == b.id) return true;
+      else return false;
+    })
+});
