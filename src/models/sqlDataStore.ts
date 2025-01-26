@@ -51,7 +51,7 @@ class SqlServerDataStore implements ISqlServer {
     return vendor;
   }
 
-  async createCustomer(data: Omit<Customer, 'id'>): Promise<number> {
+  async createCustomer(data: Omit<Customer, 'id'> & { address?: string }): Promise<number> {
     const customer = await this.db.customer.create({ data, select: { id: true } });
     return customer.id;
   }
@@ -92,6 +92,8 @@ class SqlServerDataStore implements ISqlServer {
       select: {
         id: true,
         customerId: true,
+        address: true,
+        paidWithCash: true,
         products: {
           select: { price: true, itemNo: true, orderId: true, productId: true, product: { select: { name: true } } }
         }
@@ -127,7 +129,7 @@ class SqlServerDataStore implements ISqlServer {
     await this.db.$transaction([this.db.product.update({ where: { id }, data: { isDeleted: true } })], { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
 
-  async buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void> {
+  async buyProducts(customerId: number, paidWithCash: boolean, address: string, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void> {
     await this.db.$transaction(
       async t => {
         const products = new Map((await t.product.findMany({ where: { id: { in: data.map(d => d.id) }, isDeleted: false }, select: { id: true, stock: true, price: true } })).map(d => [d.id, { stock: d.stock, price: d.price }]));
@@ -146,7 +148,7 @@ class SqlServerDataStore implements ISqlServer {
         });
 
         await Promise.all(updatePromises);
-        await t.order.create({ data: { customerId, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } });
+        await t.order.create({ data: { customerId, paidWithCash, address, products: { createMany: { data: data.map(d => ({ price: products.get(d.id)?.price as number, productId: d.id, itemNo: d.stock })) } } } });
         PaymentHandler.processPayment();
       },
       { maxWait: 60000, timeout: 120000, isolationLevel: Prisma.TransactionIsolationLevel.Serializable }

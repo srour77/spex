@@ -4,6 +4,7 @@ import { Product, Vendor } from '@prisma/client';
 import { APIResponse } from '../globals/types';
 import { StatusCodes } from 'http-status-codes';
 import { Roles } from '../globals/enums';
+import { cities, governorates } from '../data';
 
 class ProductController {
   private db: ISqlServer;
@@ -113,11 +114,15 @@ class ProductController {
     res.status(StatusCodes.OK).json({ message: 'success', success: true, products });
   };
 
-  buy: RequestHandler<any, APIResponse, { products: Array<Pick<Product, 'id' | 'stock'>> }> = async (req, res, next) => {
+  buy: RequestHandler<any, APIResponse, { paidWithCash: boolean; address: any; products: Array<Pick<Product, 'id' | 'stock'>> }> = async (req, res, next) => {
     const {
       [Roles.customer]: { id }
     } = res.locals;
-    await this.db.buyProducts(id, req.body.products);
+    const { paidWithCash, address, products } = req.body;
+    req.body.address.governorate = governorates[address.governorate]['governorate_name_ar'];
+    req.body.address.city = cities[address.city]['city_name_ar'];
+    req.body.address = JSON.stringify(address);
+    await this.db.buyProducts(id, paidWithCash, req.body.address, products);
     res.status(StatusCodes.OK).json({ message: 'your order placed successfully', success: true });
   };
 }

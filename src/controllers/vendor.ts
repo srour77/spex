@@ -7,6 +7,7 @@ import { hash, compare } from 'bcrypt';
 import VendorServices from '../services/vendor';
 import { Roles } from '../globals/enums';
 import jwt from 'jsonwebtoken';
+import { cities, governorates } from '../data';
 
 class VendorController {
   private db: ISqlServer;
@@ -17,13 +18,16 @@ class VendorController {
     this.services = new VendorServices(_db);
   }
 
-  create: RequestHandler<any, APIResponse, Omit<Vendor, 'id'>> = async (req, res, next) => {
+  create: RequestHandler<any, APIResponse, Omit<Vendor, 'id' | 'address'> & { address: any }> = async (req, res, next) => {
     if (await this.services.vendorExists(req.body.email)) {
       res.status(StatusCodes.OK).json({ message: 'vendor already exists', success: false });
       return;
     }
     req.body.password = await hash(req.body.password, 10);
-    const id = await this.db.createVendor(req.body);
+    req.body.address.governorate = governorates[req.body.address.governorate]['governorate_name_ar'];
+    req.body.address.city = cities[req.body.address.city]['city_name_ar'];
+    const data = { ...req.body, address: JSON.stringify(req.body.address) };
+    await this.db.createVendor(data);
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true });
   };
 

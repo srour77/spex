@@ -48,7 +48,7 @@ model ProductImages {
 model Customer {
   id            Int      @id @default(autoincrement())
   name          String   @db.NVarChar(100)
-  address       String   @db.NVarChar(200)
+  address       String?  @db.NVarChar(200)
   email         String   @db.VarChar(70) @unique
   emailVerified Boolean  @default(false)
   phone         String   @db.Char(11)
@@ -57,10 +57,12 @@ model Customer {
 }
 
 model Order {
-  id         String            @id @default(uuid())
-  customerId Int
-  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: Cascade)
-  products   Product_Order[]
+  id                 String           @id @default(uuid())
+  customerId         Int
+  address            String           @db.NVarChar(200)
+  paidWithCash       Boolean
+  customer           Customer         @relation(fields: [customerId], references: [id], onDelete: NoAction, onUpdate: Cascade)
+  products           Product_Order[]
 }
 
 model Product_Order {

@@ -2,6 +2,7 @@ import { Product } from '@prisma/client';
 import joi from 'joi';
 import { Categories } from '../globals/enums';
 import { cpuSpecs, driveSpecs, gpuSpecs, keyboardSpecs, monitorSpecs, motherBoardSpecs, mouseSpecs, ramSpecs } from '../globals/types';
+import { addressSchema } from './common';
 
 type generalSearchSchema = {
   category: string;
@@ -320,15 +321,19 @@ export const createProductSchema = joi.object<Omit<Product, 'id' | 'isDeleted'> 
   images: joi.array().min(3).max(7).items(joi.string().uri()).unique().required()
 });
 
-export const buyProductsSchema = joi.object({
-  products: joi
-    .array()
-    .items({
-      id: joi.number().integer().min(1).required(),
-      stock: joi.number().integer().min(1).required()
-    })
-    .unique((a, b) => {
-      if (a.id == b.id) return true;
-      else return false;
-    })
-});
+export const buyProductsSchema = joi
+  .object({
+    paidWithCash: joi.bool().required(),
+    address: addressSchema.required(),
+    products: joi
+      .array()
+      .items({
+        id: joi.number().integer().min(1).required(),
+        stock: joi.number().integer().min(1).required()
+      })
+      .unique((a, b) => {
+        if (a.id == b.id) return true;
+        else return false;
+      })
+  })
+  .concat(addressSchema.required());

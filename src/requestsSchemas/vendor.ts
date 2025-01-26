@@ -1,11 +1,12 @@
 import { Vendor } from '@prisma/client';
 import joi from 'joi';
+import { addressSchema } from './common';
 
 export const createVendorSchema = joi.object<Omit<Vendor, 'id' | 'emailVerified'>>({
   name: joi.string().min(2).max(200).required(),
   email: joi.string().email().required(),
   password: joi.string().min(7).max(50).required(),
-  address: joi.string().min(4).max(300).required(),
+  address: addressSchema.required(),
   phone: joi
     .string()
     .regex(/01[0125][0-9]{8}$/)

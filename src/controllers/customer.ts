@@ -7,6 +7,7 @@ import { hash, compare } from 'bcrypt';
 import CustomerServices from '../services/customer';
 import { Roles } from '../globals/enums';
 import jwt from 'jsonwebtoken';
+import { cities, governorates } from '../data';
 
 class CustomerController {
   private db: ISqlServer;
@@ -26,13 +27,21 @@ class CustomerController {
     res.status(StatusCodes.OK).json({ message: 'success', success: true, customer: formattedCustomer });
   };
 
-  create: RequestHandler<any, APIResponse, Omit<Vendor, 'id'>> = async (req, res, next) => {
+  create: RequestHandler<any, APIResponse, Omit<Customer, 'id' | 'address'> & { address?: any }> = async (req, res, next) => {
+    const { password, address } = req.body;
     if (await this.services.customerExists(req.body.email)) {
-      res.status(StatusCodes.OK).json({ message: 'vendor already exists', success: false });
+      res.status(StatusCodes.OK).json({ message: 'customer already exists', success: false });
       return;
     }
-    req.body.password = await hash(req.body.password, 10);
-    const id = await this.db.createCustomer(req.body);
+    req.body.password = await hash(password, 10);
+    let data = req.body;
+    if (address) {
+      req.body.address.governorate = governorates[address.governorate]['governorate_name_ar'];
+      req.body.address.city = cities[address.city]['city_name_ar'];
+      data.address = JSON.stringify(req.body.address);
+    }
+
+    await this.db.createCustomer(data);
     res.status(StatusCodes.CREATED).json({ message: 'success', success: true });
   };
 

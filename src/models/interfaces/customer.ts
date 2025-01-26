@@ -1,7 +1,7 @@
 import { Customer, Order, Product, Product_Order } from '@prisma/client';
 
 interface ICustomer {
-  createCustomer(data: Omit<Customer, 'id'>): Promise<number>;
+  createCustomer(data: Omit<Customer, 'id' | 'address'> & { address?: string }): Promise<number>;
   updateCustomer(id: number, data: Partial<Pick<Customer, 'name' | 'address' | 'phone'>>): Promise<void>;
   updateCustomerPassword(id: number, password: string): Promise<void>;
   updateCustomerPassword(email: string, password: string): Promise<void>;

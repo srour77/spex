@@ -16,7 +16,7 @@ interface IProduct {
   ): Promise<Array<Pick<Product, 'id' | 'name' | 'desc' | 'price' | 'stock' | 'isNew'>>>;
   getProductsByVendorId(vendorId: number): Promise<Array<Product>>;
   getAllProducts(): Promise<Array<Product>>;
-  buyProducts(customerId: number, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void>;
+  buyProducts(customerId: number, paidWithCash: boolean, address: string, data: Array<Pick<Product, 'id' | 'stock'>>): Promise<void>;
   getProductsByName(name: string): Promise<Array<Pick<Product, 'id' | 'name' | 'price'>>>;
   getAllProductsByVendorId(vendorId: number): Promise<Array<Product>>;
 }

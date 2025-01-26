@@ -15,7 +15,7 @@ class CustomerServices {
   }
 
   async customerExists(email: string): Promise<boolean> {
-    if ((await this.db.getVendorCount(email)) >= 1) return true;
+    if ((await this.db.getCustomersCount(email)) >= 1) return true;
     return false;
   }
 

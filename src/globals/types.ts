@@ -1,3 +1,4 @@
+import { number } from 'joi';
 import { Roles } from './enums';
 
 export type cpuSpecs = {
@@ -77,4 +78,14 @@ export type Token = {
   id: number;
   email: string;
   role: Roles;
+};
+
+export type address = {
+  governorate: number;
+  city: number;
+  district: string;
+  street: string;
+  building: string;
+  floor: number;
+  apartment?: number;
 };
